@@ -61,7 +61,7 @@ export class Container {
     };
 
     static TargetNotFound = class TargetNotFound extends Error {
-        constructor( token: Token<any> | Constructor< ) {
+        constructor( token: Token<any> | Constructor ) {
             super( `Could not resolve target value from Container: ${ token.toString() }` );
         }
     };
