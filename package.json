@@ -4,6 +4,10 @@
   "main": "index.js",
   "author": "SalathielGenese <salathielgenese@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "jasmine-ts --project spec/tsconfig.json",
+    "jasmine-ts": "jasmine-ts"
+  },
   "devDependencies": {
     "@squall.io/types": "^0.0.9",
     "@types/debug": "^4.1.7",
