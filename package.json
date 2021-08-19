@@ -8,6 +8,18 @@
     "test": "jasmine-ts --project spec/tsconfig.json",
     "jasmine-ts": "jasmine-ts"
   },
+  "nodemonConfig": {
+    "ext": "ts",
+    "signal": "SIGINT",
+    "ignore": [
+      "node_modules/*",
+      ".idea/*",
+      ".git/*"
+    ],
+    "watch": [
+      "src/*"
+    ]
+  },
   "devDependencies": {
     "@squall.io/types": "^0.0.9",
     "@types/debug": "^4.1.7",
