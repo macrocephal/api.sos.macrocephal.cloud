@@ -3,7 +3,13 @@
   "compilerOptions": {
     "types": [
       "jasmine",
-      "../global"
+      "../global",
+      // "../global.d",
+      // "../global.d.ts"
     ]
-  }
+  },
+  "include": [
+    ".",
+    "../src"
+  ]
 }
