@@ -7,9 +7,9 @@
 import { Constructor } from '@squall.io/types';
 
 export class Container {
-    #constructors = new Set<Constructor>;
-    #values = new Map<Token<any> | Constructor, any>;
-    #factories = new Map<Token<any>, ValueFactory<any>>;
+    #constructors = new Set<Constructor>();
+    #values = new Map<Token<any> | Constructor, any>();
+    #factories = new Map<Token<any>, ValueFactory<any>>();
 
     static #isToken( token: any ): token is Token<any> {
         return 'symbol' === typeof token;
@@ -30,7 +30,9 @@ export class Container {
         return this;
     }
 
-    async inject<T>( token: Token<T> | Constructor<T> ): Promise<T extends Promise<infer I> ? I : T> {
+    async inject<T>( token: Token<T> ): Promise<T>;
+    async inject<T>( token: Constructor<T> ): Promise<T>;
+    async inject<T>( token: Token<T> | Constructor<T> ): Promise<T> {
         if ( this.#values.has( token ) ) {
             return this.#values.get( token );
         } else if ( Container.#isToken( token ) && this.#factories.has( token ) ) {
@@ -53,14 +55,14 @@ export class Container {
     }
 
     static TargetComputeError = class TargetNotFound extends Error {
-        constructor( token: Token<any> | { new( container: Container ): any }, public readonly cause: any ) {
-            super( `Could not resolve target value from Container: ${ token }` );
+        constructor( token: Token<any> | Constructor, public readonly cause: any ) {
+            super( `Could not resolve target value from Container: ${ token.toString() }` );
         }
     };
 
     static TargetNotFound = class TargetNotFound extends Error {
-        constructor( token: Token<any> | { new( container: Container ): any } ) {
-            super( `Could not resolve target value from Container: ${ token }` );
+        constructor( token: Token<any> | Constructor< ) {
+            super( `Could not resolve target value from Container: ${ token.toString() }` );
         }
     };
 }
