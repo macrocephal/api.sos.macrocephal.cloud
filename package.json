@@ -14,6 +14,7 @@
     "@types/jasmine": "^3.8.2",
     "jasmine": "^3.8.0",
     "jasmine-ts": "^0.4.0",
+    "nodemon": "^2.0.12",
     "ts-node": "^10.2.0",
     "tslib": "^2.3.1",
     "typescript": "^4.3.5"
