@@ -4,19 +4,21 @@
  * @author Salathiel &lt;salathiel@genese.name&gt;
  *
  */
+import { Constructor } from '@squall.io/types';
+
 export class Container {
+    #constructors = new Set<Constructor>;
+    #values = new Map<Token<any> | Constructor, any>;
     #factories = new Map<Token<any>, ValueFactory<any>>;
-    #constructors = new Set<{ new( container: Container ): any }>;
-    #values = new Map<Token<any> | { new( container: Container ): any }, any>;
 
     static #isToken( token: any ): token is Token<any> {
         return 'symbol' === typeof token;
     }
 
-    register<T>( token: { new( container: Container ): T } ): this;
+    register<T>( token: Constructor<T> ): this;
     register<T>( token: Token<T>, factory: ValueFactory<T> ): this;
-    register<T>( token: { new( container: Container ): T }, value: any ): this;
-    register<T>( token: Token<T> | { new( container: Container ): T }, factoryOrValue?: any ): this {
+    register<T>( token: Constructor<T>, value: any ): this;
+    register<T>( token: Token<T> | Constructor<T>, factoryOrValue?: any ): this {
         if ( Container.#isToken( token ) ) {
             this.#factories.set( token, factoryOrValue! );
         } else if ( 1 < arguments.length ) {
@@ -28,7 +30,7 @@ export class Container {
         return this;
     }
 
-    async inject<T>( token: Token<T> | { new( container: Container ): T } ): Promise<T extends Promise<infer I> ? I : T> {
+    async inject<T>( token: Token<T> | Constructor<T> ): Promise<T extends Promise<infer I> ? I : T> {
         if ( this.#values.has( token ) ) {
             return this.#values.get( token );
         } else if ( Container.#isToken( token ) && this.#factories.has( token ) ) {
