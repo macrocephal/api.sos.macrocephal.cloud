@@ -38,14 +38,20 @@ export class Container {
         } else if ( Container.#isToken( token ) && this.#factories.has( token ) ) {
             try {
                 // NOTE: catch exception for sync & async factory
-                return await this.#factories.get( token )!( this );
+                const value = await this.#factories.get( token )!( this );
+                return this.#values.set(token, value).get(token);
             } catch ( error ) {
                 throw new Container.TargetComputeError( token, error );
             }
         } else if ( !Container.#isToken( token ) ) {
+            if ( !this.#constructors.has( token ) ) {
+                throw new Container.TargetNotFound( token );
+            }
+
             try {
                 // NOTE: catch exception for sync & async factory
-                return this.#values.set( token, Reflect.construct( token, [ this ] ) ).get( token );
+                const value = Reflect.construct( token, [ this ] );
+                return this.#values.set( token, value ).get( token );
             } catch ( error ) {
                 throw new Container.TargetComputeError( token, error );
             }
