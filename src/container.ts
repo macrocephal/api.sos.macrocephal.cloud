@@ -58,7 +58,9 @@ export class Container {
                 try {
                     // NOTE: catch exception for sync & async factory
                     const value = await this.#factories.get(token)!(this);
+
                     values.push(this.#values.set(token, value).get(token));
+                    this.#values.set(token, value);
                 } catch (error) {
                     throw new Container.TargetComputeError(token, error);
                 }
@@ -70,7 +72,9 @@ export class Container {
                 try {
                     // NOTE: catch exception for sync & async factory
                     const value = Reflect.construct(token, [this]);
+
                     values.push(this.#values.set(token, value).get(token));
+                    this.#values.set(token, value);
                 } catch (error) {
                     throw new Container.TargetComputeError(token, error);
                 }
