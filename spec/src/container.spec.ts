@@ -209,4 +209,41 @@ describe('Container', () => {
         container.register(Class, value);
         expect(await container.inject<any>(Class)).toEqual([value] as any);
     });
+
+    describe('visit(...)', () => {
+        it('should immediately execute visitors', () => {
+            const oneSpy = jasmine.createSpy();
+            const otherSpy = jasmine.createSpy();
+
+            container.visit(oneSpy, otherSpy);
+            expect(oneSpy).toHaveBeenCalled();
+            expect(otherSpy).toHaveBeenCalled();
+        });
+
+        it('should immediately execute visitors, once each', () => {
+            const oneSpy = jasmine.createSpy();
+            const otherSpy = jasmine.createSpy();
+
+            container.visit(oneSpy, otherSpy);
+            expect(oneSpy).toHaveBeenCalledTimes(1);
+            expect(otherSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('should immediately execute visitors, once each, in given order', () => {
+            const oneSpy = jasmine.createSpy();
+            const otherSpy = jasmine.createSpy();
+
+            container.visit(oneSpy, otherSpy);
+            expect(oneSpy).toHaveBeenCalledBefore(otherSpy);
+        });
+
+        it('should immediately execute visitors, once each, with container', () => {
+            const oneSpy = jasmine.createSpy();
+            const otherSpy = jasmine.createSpy();
+
+            container.visit(oneSpy, otherSpy);
+            expect(oneSpy).toHaveBeenCalledWith(container);
+            expect(otherSpy).toHaveBeenCalledWith(container);
+        });
+    })
 });
