@@ -29,10 +29,9 @@ import { Container } from './container';
         await server.start();
         process.on('SIGINT', () => {
             server.stop();
-            logger.log(`Stopped from ${server.info.uri}`);
             redis.disconnect(false);
-            logger.log(`Disconnected from Redis`);
-            logger.log(`Gracefully shutdown!`);
+            logger.log(`Stopped server ${server.info.uri}, disconnected Redis, gracefully shutdown!`);
+            process.exit(130);
         });
         logger.log(`Started on ${server.info.uri}`);
     } catch (error) {
