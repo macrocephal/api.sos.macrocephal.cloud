@@ -24,7 +24,7 @@ export abstract class Service<M extends Model> {
         const key = 'id' in criterium ? this.key(criterium) : criterium.key;
         const redis = await this.redis;
 
-        return !!await redis.exists(key);
+        return !!+await redis.exists(key);
     }
 
     async search(key: string): Promise<M>;
@@ -66,15 +66,15 @@ export abstract class Service<M extends Model> {
         const redis = await this.redis;
 
         if (await this.exists({ key })) {
-            return !!await redis.expire(key, recycleTimeout);
+            return !!+await redis.expire(key, recycleTimeout);
         }
 
         return false;
     }
 
-    protected abstract id(key: string): string;
     protected abstract unmarshall(hash: Record<string, string>): M;
-    protected abstract key(Model: Partial<M> | { id: string }): string;
+    abstract key(model: Partial<M> | { id: string }): string;
+    abstract id(key: string): string;
 
     protected get recycleTimeout(): Promise<number> {
         return this.container.inject(APPLICATION_RECYCLE_TIMEOUT).then(([redis]) => redis);
