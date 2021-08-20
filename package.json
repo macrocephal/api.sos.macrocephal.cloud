@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "env-cmd --silent node --enable-source-maps --trace-warnings dist/*.js",
     "test:watch": "nodemon --watch spec --watch src --exec 'yarpm run test'",
-    "test": "jasmine-ts --project spec/tsconfig.json",
+    "test": "env-cmd --silent jasmine-ts --project spec/tsconfig.json",
     "start:watch": "nodemon --exec 'yarpm start'",
     "start": "yarpm run build && yarpm run serve",
     "build": "yarpm run lint && webpack",
