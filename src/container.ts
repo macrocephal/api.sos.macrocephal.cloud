@@ -9,14 +9,14 @@ import { Constructor } from '@squall.io/types';
 export class Container {
     #constructors = new Set<Constructor>();
     #values = new Map<Token<any> | Constructor, any>();
-    #factories = new Map<Token<any>, ValueFactory<any>>();
+    #factories = new Map<Token<any>, Container.Factory<any>>();
 
     static #isToken(token: any): token is Token<any> {
         return 'symbol' === typeof token;
     }
 
     register<T>(token: Constructor<T>): this;
-    register<T>(token: Token<T>, factory: ValueFactory<T>): this;
+    register<T>(token: Token<T>, factory: Container.Factory<T>): this;
     register<T>(token: Constructor<T>, value: any): this;
     register<T>(token: Token<T> | Constructor<T>, factoryOrValue?: any): this {
         if (Container.#isToken(token)) {
@@ -87,6 +87,8 @@ export class Container {
     };
 }
 
-export interface ValueFactory<T> {
-    (container: Container): T | Promise<T>;
+export namespace Container {
+    export interface Factory<T> {
+        (container: Container): T | Promise<T>;
+    }
 }
