@@ -1,9 +1,9 @@
 import IORedis from 'ioredis';
-import { Service } from '../../src/app/service/service';
-import { Model } from './../../src/app/model/model';
-import { APPLICATION_RECYCLE_TIMEOUT, createEnv } from './../../src/conf/create-env';
-import { createRedis, REDIS_TOKEN } from './../../src/conf/create-redis';
-import { Container } from './../../src/container';
+import { Service } from '../../../src/app/service/service';
+import { Model } from '../../../src/app/model/model';
+import { APPLICATION_RECYCLE_TIMEOUT, createEnv } from '../../../src/conf/create-env';
+import { createRedis, REDIS_TOKEN } from '../../../src/conf/create-redis';
+import { Container } from '../../../src/container';
 
 describe('Service', () => {
     beforeEach(async () => {
