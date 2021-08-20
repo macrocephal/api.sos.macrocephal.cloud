@@ -30,6 +30,14 @@ export class Container {
         return this;
     }
 
+    visit(...visitors: Container.Visitor[]): this {
+        for (const visitor of visitors) {
+            visitor(this);
+        }
+
+        return this;
+    }
+
     async inject<TS extends (Token<any> | Constructor)[]>(...tokens: TS): Promise<{
         [K in keyof TS]: TS[K] extends Token<infer TT>
         ? TT extends Promise<infer T>
@@ -90,5 +98,9 @@ export class Container {
 export namespace Container {
     export interface Factory<T> {
         (container: Container): T | Promise<T>;
+    }
+
+    export interface Visitor {
+        (host: Container): any;
     }
 }
