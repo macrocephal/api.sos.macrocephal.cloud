@@ -7,9 +7,8 @@
 import { Constructor } from '@squall.io/types';
 
 export class Container {
-    #constructors = new Set<Constructor>();
     #values = new Map<Token<any> | Constructor, any>();
-    #factories = new Map<Token<any>, Container.Factory<any>>();
+    #factories = new Map<Token<any> | Constructor, Container.Factory<any>>();
 
     static #isToken(token: any): token is Token<any> {
         return 'symbol' === typeof token;
@@ -24,7 +23,7 @@ export class Container {
         } else if (1 < arguments.length) {
             this.#values.set(token, factoryOrValue);
         } else {
-            this.#constructors.add(token);
+            this.#factories.set(token, () => Reflect.construct(token, [this]));
         }
 
         return this;
@@ -54,24 +53,10 @@ export class Container {
         for (const token of tokens) {
             if (this.#values.has(token)) {
                 values.push(this.#values.get(token));
-            } else if (Container.#isToken(token) && this.#factories.has(token)) {
+            } else if (this.#factories.has(token)) {
                 try {
                     // NOTE: catch exception for sync & async factory
                     const value = await this.#factories.get(token)!(this);
-
-                    values.push(this.#values.set(token, value).get(token));
-                    this.#values.set(token, value);
-                } catch (error) {
-                    throw new Container.TargetComputeError(token, error);
-                }
-            } else if (!Container.#isToken(token)) {
-                if (!this.#constructors.has(token)) {
-                    throw new Container.TargetNotFound(token);
-                }
-
-                try {
-                    // NOTE: catch exception for sync & async factory
-                    const value = Reflect.construct(token, [this]);
 
                     values.push(this.#values.set(token, value).get(token));
                     this.#values.set(token, value);
