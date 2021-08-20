@@ -9,26 +9,30 @@ import { createServer, SERVER_TOKEN } from './conf/create-server';
 import { Container } from './container';
 
 (async container => {
-    const [logger, server] = await container
-        // configration visitors
-        .visit(createServer, createEnv)
-        // endpoint visitors
-        .visit(
-            dispatches,
-            requests,
-            matches,
-            clients,
-            users,
-        )
-        // services
-        .register(Logger)
-        .inject(Logger, SERVER_TOKEN);
+    try {
+        const [logger, server] = await container
+            // configration visitors
+            .visit(createServer, createEnv)
+            // endpoint visitors
+            .visit(
+                dispatches,
+                requests,
+                matches,
+                clients,
+                users,
+            )
+            // services
+            .register(Logger)
+            .inject(Logger, SERVER_TOKEN);
 
-    await server.start();
-    process.on('SIGINT', () => {
-        server.stop();
-        logger.log(`Stopped from ${server.info.uri}`);
-        logger.log(`Gracefully shutdown!`);
-    });
-    logger.log(`Started on ${server.info.uri}`);
-})(new Container()).catch(error => new Logger(new Container()).error(error));
+        await server.start();
+        process.on('SIGINT', () => {
+            server.stop();
+            logger.log(`Stopped from ${server.info.uri}`);
+            logger.log(`Gracefully shutdown!`);
+        });
+        logger.log(`Started on ${server.info.uri}`);
+    } catch (error) {
+        (await container.inject(Logger))[0].error(error);
+    }
+})(new Container());
