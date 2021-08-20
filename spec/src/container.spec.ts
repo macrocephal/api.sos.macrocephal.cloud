@@ -210,6 +210,20 @@ describe('Container', () => {
         expect(await container.inject<any>(Class)).toEqual([value] as any);
     });
 
+    it('should execute async factory only once for a given token', async () => {
+        const spy = jasmine.createSpy();
+
+        await container.register(token, spy).inject(token, token);
+        expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should execute async factory only once for a given token, resolving the exact same value', async () => {
+        const value = Math.random().toString(36);
+
+        container.register(token, () => value);
+        expect(await container.inject(token, token)).toEqual([value, value]);
+    });
+
     describe('visit(...)', () => {
         it('should immediately execute visitors', () => {
             const oneSpy = jasmine.createSpy();

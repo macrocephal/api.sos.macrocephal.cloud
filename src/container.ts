@@ -8,6 +8,7 @@ import { Constructor } from '@squall.io/types';
 
 export class Container {
     #values = new Map<Token<any> | Constructor, any>();
+    #pendingValues = new Map<Token<any> | Constructor, Promise<any>>();
     #factories = new Map<Token<any> | Constructor, Container.Factory<any>>();
 
     static #isToken(token: any): token is Token<any> {
@@ -53,13 +54,30 @@ export class Container {
         for (const token of tokens) {
             if (this.#values.has(token)) {
                 values.push(this.#values.get(token));
+            } else if (this.#pendingValues.has(token)) {
+                try {
+                    // NOTE: catch exception for pending values when they resolve
+                    const value = await this.#pendingValues.get(token);
+
+                    values.push(this.#values.set(token, value).get(token));
+                    this.#values.set(token, value);
+                } catch (error) {
+                    throw new Container.TargetComputeError(token, error);
+                }
             } else if (this.#factories.has(token)) {
+                // NOTE: We need not `reject` as errors will bubble up
+                //       to `else if (this.#pendingValues.has(token))` condition
+                let resolve!: Function;
+                this.#pendingValues.set(token, new Promise(res => resolve = res));
+
                 try {
                     // NOTE: catch exception for sync & async factory
                     const value = await this.#factories.get(token)!(this);
 
                     values.push(this.#values.set(token, value).get(token));
+                    this.#pendingValues.delete(token);
                     this.#values.set(token, value);
+                    resolve(value);
                 } catch (error) {
                     throw new Container.TargetComputeError(token, error);
                 }
