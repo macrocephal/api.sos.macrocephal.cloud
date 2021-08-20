@@ -5,6 +5,7 @@ export const SERVER_PORT: Token<number> = Symbol('Server port');
 export const SERVER_HOST: Token<string> = Symbol('Server host');
 
 export const APPLICATION_NAME: Token<string> = Symbol('Application name');
+export const APPLICATION_RECYCLE_TIMEOUT: Token<number> = Symbol('Application recycle timeout');
 
 export const REDIS_DB: Token<number> = Symbol('Redis db');
 export const REDIS_PORT: Token<number> = Symbol('Redis port');
@@ -23,6 +24,8 @@ const {
     REDIS_PORT: REDIS_PORT_ENV = 6379,
     REDIS_DB: REDID_DB_ENV = 0,
 
+    RECYCLE_TIMEOUT: RECYCLE_TIMEOUT_ENV = 3 * 24 * 3600,
+
     HOST = '0.0.0.0',
     PORT = 3000,
 } = process.env;
@@ -36,6 +39,7 @@ export const createEnv = (container: Container) => {
     container.register(REDIS_HOST, () => REDIS_HOST_ENV);
     container.register(REDIS_DB, () => +REDID_DB_ENV || 0);
 
+    container.register(APPLICATION_RECYCLE_TIMEOUT, () => Number(RECYCLE_TIMEOUT_ENV) || 3); //  3s seconds seems good for testing pusposes
     container.register(APPLICATION_NAME, () => packAge.name);
 
     container.register(SERVER_PORT, () => +PORT);
