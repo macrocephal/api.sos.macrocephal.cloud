@@ -30,34 +30,48 @@ export class Container {
         return this;
     }
 
-    async inject<T>( token: Token<T> ): Promise<T>;
-    async inject<T>( token: Constructor<T> ): Promise<T>;
-    async inject<T>( token: Token<T> | Constructor<T> ): Promise<T> {
-        if ( this.#values.has( token ) ) {
-            return this.#values.get( token );
-        } else if ( Container.#isToken( token ) && this.#factories.has( token ) ) {
-            try {
-                // NOTE: catch exception for sync & async factory
-                const value = await this.#factories.get( token )!( this );
-                return this.#values.set(token, value).get(token);
-            } catch ( error ) {
-                throw new Container.TargetComputeError( token, error );
-            }
-        } else if ( !Container.#isToken( token ) ) {
-            if ( !this.#constructors.has( token ) ) {
+    async inject<TS extends (Token<any> | Constructor)[]>( ...tokens: TS ): Promise<{
+        [K in keyof TS]: TS[K] extends Token<infer TT>
+            ? TT extends Promise<infer T>
+                ? T
+                : TT
+            : TS[K] extends Constructor<infer CT>
+                ? CT extends Promise<infer T>
+                    ? T
+                    : CT
+                : never;
+    }> {
+        const values: any[] = [];
+
+        for ( const token of tokens ) {
+            if ( this.#values.has( token ) ) {
+                values.push( this.#values.get( token ) );
+            } else if ( Container.#isToken( token ) && this.#factories.has( token ) ) {
+                try {
+                    // NOTE: catch exception for sync & async factory
+                    const value = await this.#factories.get( token )!( this );
+                    values.push( this.#values.set(token, value).get(token) );
+                } catch ( error ) {
+                    throw new Container.TargetComputeError( token, error );
+                }
+            } else if ( !Container.#isToken( token ) ) {
+                if ( !this.#constructors.has( token ) ) {
+                    throw new Container.TargetNotFound( token );
+                }
+
+                try {
+                    // NOTE: catch exception for sync & async factory
+                    const value = Reflect.construct( token, [ this ] );
+                    values.push( this.#values.set( token, value ).get( token ) );
+                } catch ( error ) {
+                    throw new Container.TargetComputeError( token, error );
+                }
+            } else {
                 throw new Container.TargetNotFound( token );
             }
-
-            try {
-                // NOTE: catch exception for sync & async factory
-                const value = Reflect.construct( token, [ this ] );
-                return this.#values.set( token, value ).get( token );
-            } catch ( error ) {
-                throw new Container.TargetComputeError( token, error );
-            }
-        } else {
-            throw new Container.TargetNotFound( token );
         }
+
+        return values as any;
     }
 
     static TargetComputeError = class TargetNotFound extends Error {

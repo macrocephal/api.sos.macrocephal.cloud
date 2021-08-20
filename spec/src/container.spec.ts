@@ -61,7 +61,7 @@ describe('Container', () => {
         const value = Math.random().toString(36);
 
         container.register(token, () => value);
-        expect(await container.inject(token)).toBe(value);
+        expect(await container.inject(token)).toEqual([value]);
     });
 
     it('injection with token should return a promise, failed with Container.TargetNotFound for unknown token', async () => {
@@ -151,7 +151,7 @@ describe('Container', () => {
         class Class { }
 
         container.register(Class);
-        expect(await container.inject(Class)).toBeInstanceOf(Class);
+        expect((await container.inject(Class))[0]).toBeInstanceOf(Class);
     });
 
     it('injection with class should return a promise, failed with Container.TargetNotFound for unknown token', async () => {
@@ -200,6 +200,6 @@ describe('Container', () => {
         const value = Math.random();
 
         container.register(Class, value);
-        expect(await container.inject<any>(Class)).toBe(value);
+        expect(await container.inject<any>(Class)).toEqual([value] as any);
     });
 });
