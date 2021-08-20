@@ -52,6 +52,13 @@ describe('Container', () => {
         expect(spy.calls.first().args[0]).toBe(container);
     });
 
+    it('should unbox promise from asynchronuous factory', async () => {
+        const value = Math.random().toString(36);
+
+        container.register(token, () => Promise.resolve(value));
+        expect(await container.inject(token)).toEqual([value]);
+    })
+
     it('injection with token should return a promise', () => {
         container.register(token, () => Math.random().toString(36));
         expect(container.inject(token)).toBeInstanceOf(Promise);
