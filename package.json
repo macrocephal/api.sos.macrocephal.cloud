@@ -22,6 +22,11 @@
       "src/*"
     ]
   },
+  "babel": {
+    "presets": [
+      "@babel/preset-typescript"
+    ]
+  },
   "devDependencies": {
     "@babel/core": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
