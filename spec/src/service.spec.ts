@@ -20,12 +20,16 @@ describe('Service', () => {
                 };
             }
 
-            key(model: { id: string; } | Partial<TestUser>): string {
-                return `test:${model.id}`;
+            key(model: (string | `${string}:${string}`) | Partial<TestUser>): `${string}:${string}` {
+                if ('string' === typeof model) {
+                    return this.isKey(model) ? model : `test:${model}`;
+                }
+
+                return this.key(model.id!);
             }
 
             id(key: string): string {
-                return key.split('test:')[1]!;
+                return key.split(':')[1]!;
             }
 
         }
@@ -53,29 +57,29 @@ describe('Service', () => {
     let redis: IORedis.Redis;
     let before: TestUser;
 
-    describe('.exists({ id: string })', () => {
+    describe('.exists( id: string )', () => {
         beforeEach(() => service.create(before));
 
         it('should set expiration on the entry in database', async () => {
-            await service.recycle({ id: before.id });
+            await service.recycle(before.id);
 
-            expect(await service.exists({ id: before.id })).toBe(true);
+            expect(await service.exists(before.id)).toBe(true);
             await new Promise(resolve => setTimeout(resolve, recycleTimeout * 1000));
-            expect(await service.exists({ id: before.id })).toBe(false);
+            expect(await service.exists(before.id)).toBe(false);
         });
     });
 
-    describe('.exists({ key: string })', () => {
+    describe('.exists( key: `${string}:${string}` )', () => {
         beforeEach(() => service.create(before));
 
         it('should set expiration on the entry in database', async () => {
-            const key = service.key({ id: before.id });
+            const key = service.key(before.id);
 
-            await service.recycle({ id: before.id });
+            await service.recycle(before.id);
 
-            expect(await service.exists({ key })).toBe(true);
+            expect(await service.exists(key)).toBe(true);
             await new Promise(resolve => setTimeout(resolve, recycleTimeout * 1000));
-            expect(await service.exists({ key })).toBe(false);
+            expect(await service.exists(key)).toBe(false);
         });
     });
 
@@ -157,21 +161,21 @@ describe('Service', () => {
         });
     });
 
-    describe('.search({ id: string })', () => {
+    describe('.search( key: `${string}:${string}` )', () => {
         beforeEach(() => service.create(before));
 
         it('should return promise of persisted model', async () => {
-            const pulled = await service.search({ id: before.id });
+            const pulled = await service.search(service.key(before.id));
 
             expect(pulled).toEqual(before);
         });
     });
 
-    describe('.recycle(string)', () => {
+    describe('.recycle( id: string )', () => {
         beforeEach(() => service.create(before));
 
         it('should set expiration on the entry in database', async () => {
-            const key = service.key({ id: before.id });
+            const key = service.key(before.id);
 
             await service.recycle(key);
 
@@ -189,13 +193,13 @@ describe('Service', () => {
         });
     });
 
-    describe('.recycle({ id: string })', () => {
+    describe('.recycle( id: `${string}:${string}` )', () => {
         beforeEach(() => service.create(before));
 
         it('should set expiration on the entry in database', async () => {
             const key = service.key({ id: before.id });
 
-            await service.recycle({ id: before.id });
+            await service.recycle(service.key(before.id));
 
             expect(+await redis.ttl(key)).toBeGreaterThanOrEqual(1);
             expect(+await redis.ttl(key)).toBeLessThanOrEqual(recycleTimeout);
@@ -204,7 +208,7 @@ describe('Service', () => {
         it('should delete entry from database, after `APPLICATION_RECYCLE_TIMEOUT` delay', async () => {
             const key = service.key({ id: before.id });
 
-            await service.recycle({ id: before.id });
+            await service.recycle(service.key(before.id));
 
             await new Promise(resolve => setTimeout(resolve, recycleTimeout * 1000));
             expect(await redis.exists(key)).toBe('0' as any);

@@ -8,7 +8,7 @@ export abstract class Service<M extends Model> {
     constructor(protected container: Container) { }
 
     async create(model: M): Promise<M> {
-        if (await this.exists(model)) {
+        if (await this.exists(model.id)) {
             return null as never;
         }
 
@@ -20,17 +20,15 @@ export abstract class Service<M extends Model> {
         return this.search(key);
     }
 
-    async exists(criterium: { id: string } | { key: string }): Promise<boolean> {
-        const key = 'id' in criterium ? this.key(criterium) : criterium.key;
+    async exists(idOrKey: Service.IdOrKey): Promise<boolean> {
+        const key = this.isKey(idOrKey) ? idOrKey : this.key(idOrKey);
         const redis = await this.redis;
 
         return !!+await redis.exists(key);
     }
 
-    async search(key: string): Promise<M>;
-    async search(criterium: { id: string }): Promise<M>;
-    async search(keyOrCriterium: string | { id: string }): Promise<M> {
-        const key = 'string' === typeof keyOrCriterium ? keyOrCriterium : this.key(keyOrCriterium);
+    async search(idOrKey: Service.IdOrKey): Promise<M> {
+        const key = this.isKey(idOrKey) ? idOrKey : this.key(idOrKey);
         const redis = await this.redis;
 
         return this.unmarshall(await redis.hgetall(key));
@@ -44,10 +42,10 @@ export abstract class Service<M extends Model> {
      * @returns
      */
     async update(model: Partial<M> & { id: string }): Promise<M> {
-        const key = this.key(model);
+        const key = this.key(model.id);
         const redis = await this.redis;
 
-        if (await this.exists({ key })) {
+        if (await this.exists(model.id)) {
             const keyValueSeries = Object.keys(model).reduce((hay, key) => [...hay, key, (model as any)[key]], [] as any[]);
 
             if ('OK' === await redis.hmset(key, ...keyValueSeries)) {
@@ -58,14 +56,12 @@ export abstract class Service<M extends Model> {
         return null as never;
     }
 
-    async recycle(key: string): Promise<boolean>;
-    async recycle(criterium: { id: string }): Promise<boolean>;
-    async recycle(keyOrCriterium: string | { id: string }): Promise<boolean> {
-        const key = 'string' === typeof keyOrCriterium ? keyOrCriterium : this.key(keyOrCriterium);
+    async recycle(idOrKey: Service.IdOrKey): Promise<boolean> {
+        const key = this.isKey(idOrKey) ? idOrKey : this.key(idOrKey);
         const recycleTimeout = await this.recycleTimeout;
         const redis = await this.redis;
 
-        if (await this.exists({ key })) {
+        if (await this.exists(key)) {
             return !!+await redis.expire(key, recycleTimeout);
         }
 
@@ -73,7 +69,7 @@ export abstract class Service<M extends Model> {
     }
 
     protected abstract unmarshall(hash: Record<string, string>): M;
-    abstract key(model: Partial<M> | { id: string }): string;
+    abstract key(model: Partial<M> | Service.IdOrKey): Service.Key;
     abstract id(key: string): string;
 
     protected get recycleTimeout(): Promise<number> {
@@ -83,4 +79,14 @@ export abstract class Service<M extends Model> {
     protected get redis(): Promise<Redis> {
         return this.container.inject(REDIS_TOKEN).then(([redis]) => redis);
     }
+
+    protected isKey(maybeKey: string): maybeKey is Service.Key {
+        return maybeKey.includes(':');
+    }
+}
+
+namespace Service {
+    export type IdOrKey = string | Key;
+
+    export type Key = `${string}:${string}`;
 }
