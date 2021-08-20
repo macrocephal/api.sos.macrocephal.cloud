@@ -5,10 +5,18 @@
   "author": "SalathielGenese <salathielgenese@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "serve": "env-cmd --silent node --enable-source-maps --trace-warnings dist/*.js",
     "test:watch": "nodemon --watch spec --watch src --exec 'yarpm run test'",
     "test": "jasmine-ts --project spec/tsconfig.json",
+    "start:watch": "nodemon --exec 'yarpm start'",
+    "start": "yarpm run build && yarpm run serve",
+    "build": "yarpm run lint && webpack",
+    "lint": "tsc --noEmit",
     "jasmine-ts": "jasmine-ts",
-    "yarpm": "yarpm"
+    "env-cmd": "env-cmd",
+    "webpack": "webpack",
+    "yarpm": "yarpm",
+    "tsc": "tsc"
   },
   "nodemonConfig": {
     "ext": "ts",
