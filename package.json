@@ -2,7 +2,8 @@
   "name": "api.sos.macrocephal.cloud",
   "version": "1.0.0",
   "main": "src/index.ts",
-  "author": "SalathielGenese <salathielgenese@gmail.com>",
+  "description": "Get help, there are people willing to help!",
+  "author": "Salathiel Genese <salathiel@genese.name>",
   "license": "MIT",
   "scripts": {
     "serve": "env-cmd --silent node --enable-source-maps --trace-warnings dist/*.js",
