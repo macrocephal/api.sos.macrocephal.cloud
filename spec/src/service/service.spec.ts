@@ -81,6 +81,18 @@ describe('Service', () => {
     });
 
     describe('.create(model)', () => {
+        it('should update `createdAt` to about now', async () => {
+            const rightBefore = Date.now();
+            const key = service.key(before.id);
+
+            await service.create(before);
+
+            const stamp = +(await redis.hget(key, 'createdAt'))!;
+
+            expect(rightBefore).toBeLessThan(Date.now());
+            expect(stamp).toBeGreaterThanOrEqual(rightBefore);
+        });
+
         it('should persist model fields/values', async () => {
             await service.create(before);
 
@@ -113,6 +125,18 @@ describe('Service', () => {
 
     describe('.update(model)', () => {
         beforeEach(() => service.create(before));
+
+        it('should update `updatedAt` to about now', async () => {
+            const rightBefore = Date.now();
+            const key = service.key(before.id);
+
+            await service.update(before);
+
+            const stamp = +(await redis.hget(key, 'updatedAt'))!;
+
+            expect(rightBefore).toBeLessThan(Date.now());
+            expect(stamp).toBeGreaterThanOrEqual(rightBefore);
+        });
 
         it('should persist updated fields/values', async () => {
             const email = `${Math.random().toString(36).replace('.', '@')}.tld`;
@@ -149,6 +173,18 @@ describe('Service', () => {
 
     describe('.update(Partial<model>) /** PATCH **/', () => {
         beforeEach(() => service.create(before));
+
+        it('should update `updatedAt` to about now', async () => {
+            const rightBefore = Date.now();
+            const key = service.key(before.id);
+
+            await service.update({ id: before.id });
+
+            const stamp = +(await redis.hget(key, 'updatedAt'))!;
+
+            expect(rightBefore).toBeLessThan(Date.now());
+            expect(stamp).toBeGreaterThanOrEqual(rightBefore);
+        });
 
         it('should persist updated fields/values', async () => {
             const email = `${Math.random().toString(36).replace('.', '@')}.tld`;
@@ -206,6 +242,18 @@ describe('Service', () => {
 
     describe('.recycle( id: string )', () => {
         beforeEach(() => service.create(before));
+
+        it('should update `recycledAt` to about now', async () => {
+            const key = service.key(before.id);
+            const rightBefore = Date.now();
+
+            await service.recycle(key);
+
+            const stamp = +(await redis.hget(key, 'recycledAt'))!;
+
+            expect(rightBefore).toBeLessThan(Date.now());
+            expect(stamp).toBeGreaterThanOrEqual(rightBefore);
+        });
 
         it('should set expiration on the entry in database', async () => {
             const key = service.key(before.id);
