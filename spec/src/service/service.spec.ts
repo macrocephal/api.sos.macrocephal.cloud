@@ -81,11 +81,11 @@ describe('Service', () => {
     });
 
     describe('.create(model)', () => {
+        beforeEach(() => service.create(before));
+
         it('should update `createdAt` to about now', async () => {
             const rightBefore = Date.now();
             const key = service.key(before.id);
-
-            await service.create(before);
 
             const stamp = +(await redis.hget(key, 'createdAt'))!;
 
@@ -94,8 +94,6 @@ describe('Service', () => {
         });
 
         it('should persist model fields/values', async () => {
-            await service.create(before);
-
             const keys = Object.keys(before);
             const after = await redis.hmget(service.key(before), keys);
 
@@ -103,20 +101,22 @@ describe('Service', () => {
         });
 
         it('should return a promise with persisted model', async () => {
+            before.id = Math.random().toString(36);
+
             const after = await service.create(before);
 
             expect(Object.entries(after).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
         });
 
         it('should return a promise with persisted model, different object than parameter', async () => {
+            before.id = Math.random().toString(36);
+
             const after = await service.create(before);
 
             expect(after).not.toBe(before);
         });
 
         it('should return a promise with null, when key already exists', async () => {
-            await service.create(before);
-
             const after = await service.create(before);
 
             expect(after).toEqual(null as never);
