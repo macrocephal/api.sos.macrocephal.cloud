@@ -17,7 +17,7 @@ import { Container } from './container';
 (async container => {
     try {
         const [logger, server, redis] = await container
-            // configration visitors
+            // configuration visitors
             .visit(createEnv, createRedis, createServer)
             // endpoint visitors
             .visit(
