@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
-import { Service } from '../../../src/app/service/service';
 import { Model } from '../../../src/app/model/model';
+import { Service } from '../../../src/app/service/service';
 import { APPLICATION_RECYCLE_TIMEOUT, createEnv } from '../../../src/conf/create-env';
 import { createRedis, REDIS_TOKEN } from '../../../src/conf/create-redis';
 import { Container } from '../../../src/container';
@@ -111,7 +111,7 @@ describe('Service', () => {
         });
     });
 
-    describe('.update(/model/)', () => {
+    describe('.update(model)', () => {
         beforeEach(() => service.create(before));
 
         it('should persist updated fields/values', async () => {
@@ -142,6 +142,42 @@ describe('Service', () => {
 
         it('should return a promise with null, when key does not exists', async () => {
             const after = await service.update({ ...before, id: Math.random().toString(36) });
+
+            expect(after).toEqual(null as never);
+        });
+    });
+
+    describe('.update(Partial<model>) /** PATCH **/', () => {
+        beforeEach(() => service.create(before));
+
+        it('should persist updated fields/values', async () => {
+            const email = `${Math.random().toString(36).replace('.', '@')}.tld`;
+
+            await service.update({ id: before.id, email });
+
+            const keys = Object.keys(before);
+            const after = await redis.hmget(service.key(before), keys);
+
+            expect(after).toEqual(keys.map(key => 'email' === key ? email : `${(before as any)[key]}`));
+        });
+
+        it('should return a promise with updated model', async () => {
+            const age = Math.random();
+            const after = await service.update({ id: before.id, age });
+
+            expect(after).toEqual({ ...before, age });
+        });
+
+        it('should return a promise with updated model, different object than parameter', async () => {
+            const email = `${Math.random().toString(36).replace('.', '@')}.tld`;
+            const beforeUpdate = { id: before.id, email };
+            const after = await service.update(beforeUpdate);
+
+            expect(after).not.toBe({ ...before, ...beforeUpdate });
+        });
+
+        it('should return a promise with null, when key does not exists', async () => {
+            const after = await service.update({ id: Math.random().toString(36) });
 
             expect(after).toEqual(null as never);
         });
