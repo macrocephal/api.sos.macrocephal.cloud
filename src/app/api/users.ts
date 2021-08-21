@@ -5,6 +5,9 @@ export const users: Container.Visitor = container =>
     container.inject(SERVER_TOKEN).then(([server]) => server.route({
         method: 'POST',
         path: '/users',
+        options: {
+            tags: ['api'],
+        },
         handler(request, h) {
             return h.response({
                 url: request.url,

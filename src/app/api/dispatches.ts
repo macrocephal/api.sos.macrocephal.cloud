@@ -5,6 +5,9 @@ export const dispatches: Container.Visitor = container =>
     container.inject(SERVER_TOKEN).then(([server]) => server.route({
         method: 'POST',
         path: '/dispatches',
+        options: {
+            tags: ['api'],
+        },
         handler(request, h) {
             return h.response({
                 url: request.url,
