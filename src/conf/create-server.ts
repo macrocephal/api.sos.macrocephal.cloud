@@ -1,3 +1,4 @@
+import { Logger } from './../app/service/logger';
 import { SERVER_HOST, SERVER_PORT } from './create-env';
 import { Container } from './../container';
 import { Server } from "@hapi/hapi";
@@ -12,12 +13,16 @@ export const createServer = (container: Container) =>
         routes: {
             validate: {
                 async failAction(_request, h, error) {
+                    const [logger] = await container.inject(Logger);
+
+                    logger.error(error);
+
                     if (error instanceof ValidationError) {
                         return h.response(error.details).code(422).takeover();
                     }
 
                     throw error;
-                }
-            }
+                },
+            },
         },
     }));
