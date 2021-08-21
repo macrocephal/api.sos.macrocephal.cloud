@@ -2,7 +2,7 @@ import Joi, { SchemaMap } from 'joi';
 
 
 export const id: SchemaMap = {
-    id: Joi.string().uuid(),
+    id: Joi.string().guid({ version: 'uuidv4' }),
 };
 
 export const ID: SchemaMap = {
