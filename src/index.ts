@@ -1,3 +1,8 @@
+import { MatchService } from './app/service/match.service';
+import { DispatchService } from './app/service/dispatch.service';
+import { RequestService } from './app/service/request.service';
+import { ClientService } from './app/service/client.service';
+import { UserService } from './app/service/user.service';
 import { clients } from './app/api/clients';
 import { dispatches } from './app/api/dispatches';
 import { matches } from './app/api/matches';
@@ -24,6 +29,11 @@ import { Container } from './container';
             )
             // services
             .register(Logger)
+            .register(UserService)
+            .register(MatchService)
+            .register(ClientService)
+            .register(RequestService)
+            .register(DispatchService)
             .inject(Logger, SERVER_TOKEN, REDIS_TOKEN);
 
         await server.start();
