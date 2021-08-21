@@ -15,6 +15,10 @@ export abstract class Service<M extends Model> {
         const key = this.key(model);
         const redis = await this.redis;
 
+        model = {
+            ...model,
+            createdAt: Date.now()
+        };
         await redis.hmset(key, model as never);
 
         return this.search(key);
@@ -46,6 +50,11 @@ export abstract class Service<M extends Model> {
         const redis = await this.redis;
 
         if (await this.exists(model.id)) {
+            model = {
+                ...model,
+                updatedAt: Date.now()
+            };
+
             const keyValueSeries = Object.keys(model).reduce((hay, key) => [...hay, key, (model as any)[key]], [] as any[]);
 
             if ('OK' === await redis.hmset(key, ...keyValueSeries)) {
@@ -62,7 +71,12 @@ export abstract class Service<M extends Model> {
         const redis = await this.redis;
 
         if (await this.exists(key)) {
-            return !!+await redis.expire(key, recycleTimeout);
+            const outcome = await (await redis.multi())
+                .hset(key, 'recycledAt', Date.now())
+                .expire(key, recycleTimeout)
+                .exec();
+
+            return '[[null,"1"],[null,"1"]]' === JSON.stringify(outcome);
         }
 
         return false;
