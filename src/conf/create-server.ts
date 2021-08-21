@@ -13,7 +13,7 @@ export const createServer = (container: Container) =>
             validate: {
                 async failAction(_request, h, error) {
                     if (error instanceof ValidationError) {
-                        return h.response(error.details).code(400).takeover();
+                        return h.response(error.details).code(422).takeover();
                     }
 
                     throw error;
