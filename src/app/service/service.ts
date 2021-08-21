@@ -42,10 +42,11 @@ export abstract class Service<M extends Model> {
      * @returns
      */
     async update(model: Partial<M> & { id: string }): Promise<M> {
-        const key = this.key(model.id);
-        const redis = await this.redis;
 
         if (await this.exists(model.id)) {
+            const redis = await this.redis;
+            const key = this.key(model.id);
+
             if (+await redis.hset(key, { ...model, updatedAt: Date.now() } as never)) {
                 return this.search(key);
             }
@@ -56,13 +57,11 @@ export abstract class Service<M extends Model> {
 
     async recycle(idOrKey: Service.IdOrKey): Promise<boolean> {
         const key = this.isKey(idOrKey) ? idOrKey : this.key(idOrKey);
-        const recycleTimeout = await this.recycleTimeout;
-        const redis = await this.redis;
 
         if (await this.exists(key)) {
-            const outcome = await (await redis.multi())
+            const outcome = await (await (await this.redis).multi())
+                .expire(key, await this.recycleTimeout)
                 .hset(key, 'recycledAt', Date.now())
-                .expire(key, recycleTimeout)
                 .exec();
 
             return '[[null,"1"],[null,"1"]]' === JSON.stringify(outcome);
