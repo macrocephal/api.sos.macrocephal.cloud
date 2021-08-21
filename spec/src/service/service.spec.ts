@@ -84,8 +84,12 @@ describe('Service', () => {
         beforeEach(() => service.create(before));
 
         it('should update `createdAt` to about now', async () => {
+            before.id = Math.random().toString(36);
+
             const rightBefore = Date.now();
             const key = service.key(before.id);
+
+            await service.create(before);
 
             const stamp = +(await redis.hget(key, 'createdAt'))!;
 
