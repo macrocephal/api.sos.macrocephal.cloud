@@ -75,11 +75,11 @@ export abstract class Service<M extends Model> {
         const model: M = JSON.parse(JSON.stringify(hash));
 
         return {
-        ...model,
-        ...model.createdAt ? { createdAt: +model.createdAt } : {},
-        ...model.updatedAt ? { updatedAt: +model.updatedAt } : {},
-        ...model.recycledAt ? { createdAt: +model.recycledAt } : {},
-    }
+            ...model,
+            ...model.createdAt ? { createdAt: +model.createdAt } : {},
+            ...model.updatedAt ? { updatedAt: +model.updatedAt } : {},
+            ...model.recycledAt ? { createdAt: +model.recycledAt } : {},
+        }
     }
 
     protected get recycleTimeout(): Promise<number> {
