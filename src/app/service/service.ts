@@ -15,11 +15,7 @@ export abstract class Service<M extends Model> {
         const key = this.key(model);
         const redis = await this.redis;
 
-        model = {
-            ...model,
-            createdAt: Date.now()
-        };
-        await redis.hset(key, model as never);
+        await redis.hset(key, { ...model, createdAt: Date.now() } as never);
 
         return this.search(key);
     }
@@ -50,14 +46,7 @@ export abstract class Service<M extends Model> {
         const redis = await this.redis;
 
         if (await this.exists(model.id)) {
-            model = {
-                ...model,
-                updatedAt: Date.now()
-            };
-
-            const keyValueSeries = Object.keys(model).reduce((hay, key) => [...hay, key, (model as any)[key]], [] as any[]);
-
-            if (+await redis.hset(key, ...keyValueSeries)) {
+            if (+await redis.hset(key, { ...model, updatedAt: Date.now() } as never)) {
                 return this.search(key);
             }
         }
