@@ -68,9 +68,19 @@ export abstract class Service<M extends Model> {
         return false;
     }
 
-    protected abstract unmarshall(hash: Record<string, string>): M;
-    abstract key(model: Partial<M> | Service.IdOrKey): Service.Key;
+    abstract key(idOrKeyOrModel: Partial<M> | Service.IdOrKey): Service.Key;
     abstract id(key: string): string;
+
+    protected unmarshall(hash: Record<string, string>): M {
+        const model: M = JSON.parse(JSON.stringify(hash));
+
+        return {
+        ...model,
+        ...model.createdAt ? { createdAt: +model.createdAt } : {},
+        ...model.updatedAt ? { updatedAt: +model.updatedAt } : {},
+        ...model.recycledAt ? { createdAt: +model.recycledAt } : {},
+    }
+    }
 
     protected get recycleTimeout(): Promise<number> {
         return this.container.inject(APPLICATION_RECYCLE_TIMEOUT).then(([redis]) => redis);
@@ -85,7 +95,7 @@ export abstract class Service<M extends Model> {
     }
 }
 
-namespace Service {
+export namespace Service {
     export type IdOrKey = string | Key;
 
     export type Key = `${string}:${string}`;

@@ -8,24 +8,21 @@ import { Container } from '../../../src/container';
 describe('Service', () => {
     beforeEach(async () => {
         class TestService extends Service<TestUser> {
-            protected unmarshall(hash: Record<string, string>): TestUser {
-                const model: TestUser = JSON.parse(JSON.stringify(hash));
+            key(idOrKeyOrModel: Service.IdOrKey | Partial<TestUser>): Service.Key {
+                if ('string' === typeof idOrKeyOrModel) {
+                    return this.isKey(idOrKeyOrModel) ? idOrKeyOrModel : `test:${idOrKeyOrModel}`;
+                }
+
+                return this.key(idOrKeyOrModel.id!);
+            }
+
+            protected override unmarshall(hash: Record<string, string>): TestUser {
+                const model: TestUser = super.unmarshall(hash);
 
                 return {
                     ...model,
                     ...model.age ? { age: +model.age } : {},
-                    ...model.createdAt ? { createdAt: +model.createdAt } : {},
-                    ...model.updatedAt ? { updatedAt: +model.updatedAt } : {},
-                    ...model.recycledAt ? { createdAt: +model.recycledAt } : {},
                 };
-            }
-
-            key(model: (string | `${string}:${string}`) | Partial<TestUser>): `${string}:${string}` {
-                if ('string' === typeof model) {
-                    return this.isKey(model) ? model : `test:${model}`;
-                }
-
-                return this.key(model.id!);
             }
 
             id(key: string): string {
