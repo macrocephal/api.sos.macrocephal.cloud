@@ -93,7 +93,7 @@ describe('Service', () => {
         it('should return a promise with persisted model', async () => {
             const after = await service.create(before);
 
-            expect(after).toEqual(before);
+            expect(Object.entries(after).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
         });
 
         it('should return a promise with persisted model, different object than parameter', async () => {
@@ -129,7 +129,7 @@ describe('Service', () => {
             const age = Math.random();
             const after = await service.update({ ...before, age });
 
-            expect(after).toEqual({ ...before, age });
+            expect(Object.entries(after).filter(([key]) => !['createdAt', 'updatedAt'].includes(key))).toEqual(Object.entries({ ...before, age }));
         });
 
         it('should return a promise with updated model, different object than parameter', async () => {
@@ -165,7 +165,7 @@ describe('Service', () => {
             const age = Math.random();
             const after = await service.update({ id: before.id, age });
 
-            expect(after).toEqual({ ...before, age });
+            expect(Object.entries(after).filter(([key]) => !['createdAt', 'updatedAt'].includes(key))).toEqual(Object.entries({ ...before, age }));
         });
 
         it('should return a promise with updated model, different object than parameter', async () => {
@@ -183,14 +183,14 @@ describe('Service', () => {
         });
     });
 
-    describe('.search(string)', () => {
+    describe('.search( id: string )', () => {
         beforeEach(() => service.create(before));
 
         it('should return promise of persisted model', async () => {
             const key = service.key({ id: before.id });
             const pulled = await service.search(key);
 
-            expect(pulled).toEqual(before);
+            expect(Object.entries(pulled).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
         });
     });
 
@@ -200,7 +200,7 @@ describe('Service', () => {
         it('should return promise of persisted model', async () => {
             const pulled = await service.search(service.key(before.id));
 
-            expect(pulled).toEqual(before);
+            expect(Object.entries(pulled).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
         });
     });
 
