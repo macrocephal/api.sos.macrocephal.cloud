@@ -23,4 +23,4 @@ are being used, and their default value, when provided.
 Consider looking into [**known-issues.md**](known-issues.md)
 before you start using the API, or open an issue.
 
-Also check the Open API documentation [on the offical website](https://api.sos.macrocephal.cloud).
+Also check the OpenAPI documentation [on the offical website](https://api.sos.macrocephal.cloud).
