@@ -232,6 +232,12 @@ describe('Service', () => {
 
             expect(Object.entries(pulled).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
         });
+
+        it('[fix] should return null when `id` does not exist', async () => {
+            const id = Math.random().toString(36);
+
+            expect(await service.search(id)).toBe(null as never);
+        });
     });
 
     describe('.search( key: `${string}:${string}` )', () => {
@@ -241,6 +247,13 @@ describe('Service', () => {
             const pulled = await service.search(service.key(before.id));
 
             expect(Object.entries(pulled).filter(([key]) => 'createdAt' !== key)).toEqual(Object.entries(before));
+        });
+
+        it('[fix] should return null when `id` does not exist', async () => {
+            const id = Math.random().toString(36);
+            const key = service.key(id);
+
+            expect(await service.search(key)).toBe(null as never);
         });
     });
 

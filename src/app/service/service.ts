@@ -30,8 +30,9 @@ export abstract class Service<M extends Model> {
     async search(idOrKey: Service.IdOrKey): Promise<M> {
         const key = this.isKey(idOrKey) ? idOrKey : this.key(idOrKey);
         const redis = await this.redis;
+        const hash = await redis.hgetall(key);
 
-        return this.unmarshall(await redis.hgetall(key));
+        return Object.keys(hash).length ? this.unmarshall(hash) : null as never;
     }
 
     /**
@@ -42,7 +43,6 @@ export abstract class Service<M extends Model> {
      * @returns
      */
     async update(model: Partial<M> & { id: string }): Promise<M> {
-
         if (await this.exists(model.id)) {
             const redis = await this.redis;
             const key = this.key(model.id);
