@@ -28,7 +28,7 @@ export const createServerPlugin: Container.Visitor = container => container
                     description: appDescription,
                     license: {
                         name: appLicense,
-                        url: `https://github.com/macrocephal/${appName}/main/LICENSE`
+                        url: `https://github.com/macrocephal/${appName}/blob/main/LICENSE`
                     },
                     contact: {
                         name: appAuthor.split(' <')[0],
