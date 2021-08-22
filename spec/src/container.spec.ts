@@ -224,6 +224,10 @@ describe('Container', () => {
         expect(await container.inject(token, token)).toEqual([value, value]);
     });
 
+    it('should return itself when injecting Container class', async () => {
+        expect(container).toBe((await container.inject(Container))[0]);
+    });
+
     describe('visit(...)', () => {
         it('should immediately execute visitors', () => {
             const oneSpy = jasmine.createSpy();

@@ -11,6 +11,10 @@ export class Container {
     #pendingValues = new Map<Token<any> | Constructor, Promise<any>>();
     #factories = new Map<Token<any> | Constructor, Container.Factory<any>>();
 
+    constructor() {
+        this.register(Container, this);
+    }
+
     static #isToken(token: any): token is Token<any> {
         return 'symbol' === typeof token;
     }
