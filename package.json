@@ -2,7 +2,7 @@
   "name": "api.sos.macrocephal.cloud",
   "version": "1.0.0",
   "main": "src/index.ts",
-  "description": "Get help, there are people willing to help!",
+  "description": "Broadcast you need help, to willing people!",
   "author": "Salathiel Genese <salathiel@genese.name>",
   "license": "MIT",
   "scripts": {
