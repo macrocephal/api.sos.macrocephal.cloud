@@ -1,4 +1,4 @@
-import Joi, { SchemaMap } from 'joi';
+import Joi, { DateSchema, SchemaMap } from 'joi';
 
 
 export const id: SchemaMap = {
@@ -14,16 +14,35 @@ export const CREATED: SchemaMap = {
     createdAt: Joi.date().timestamp().required(),
 };
 
-export const UPDATED: SchemaMap = {
+export const updated: SchemaMap = {
     ...CREATED,
-    updatedAt: Joi.date().timestamp().required(),
+    updatedAt: Joi.date().timestamp(),
+};
+
+export const UPDATED: SchemaMap = {
+    ...updated,
+    updatedAt: (updated.updatedAt as DateSchema).required(),
+};
+
+export const recycled: SchemaMap = {
+    ...updated,
+    recycledAt: Joi.date().timestamp(),
+};
+
+export const RECYCLED: SchemaMap = {
+    ...recycled,
+    recycledAt: (recycled.recycledAt as DateSchema).required(),
 };
 
 export const VALIDATION_ERRORS = Joi.array().items(
     Joi.object({
         type: Joi.string().required(),
         message: Joi.string().required(),
-        context: Joi.object().unknown().label('ErrorContext'),
+        context: Joi.object({
+            value: Joi.any(),
+            key: Joi.string(),
+            label: Joi.string(),
+        }).unknown().label('ErrorContext'),
         path: Joi.array().items(Joi.string(), Joi.number()).required().label('ErrorPath'),
     }).label('ValidationError'),
 ).required().label('ValidationErrors');
