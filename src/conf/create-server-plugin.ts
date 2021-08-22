@@ -7,7 +7,7 @@ import { SERVER_TOKEN } from './create-server';
 
 export const createServerPlugin: Container.Visitor = container => container
     .inject(SERVER_TOKEN, APPLICATION_NAME, APPLICATION_AUTHOR, APPLICATION_LICENSE, APPLICATION_VERSION, APPLICATION_DESCRIPTION)
-    .then(([server, appName, appAuthor, appLicense, appVersion, appDescription]) => console.log({appLicense}) as any || server.register([
+    .then(([server, appName, appAuthor, appLicense, appVersion, appDescription]) => server.register([
         { plugin: inert },
         { plugin: vision },
         {
