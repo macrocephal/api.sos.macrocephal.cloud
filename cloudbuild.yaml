@@ -34,6 +34,11 @@ steps:
       - --tag
       - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
       - .
+  # Push container image to registry
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
   # Deploy container image to Cloud Run
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: sh
@@ -46,5 +51,3 @@ steps:
         --region $_REGION --platform managed \
         --set-env-vars="^[{!}]^$( cat /workspace/.env )" \
         --image gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
-images:
-  - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
