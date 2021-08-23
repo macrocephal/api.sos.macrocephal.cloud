@@ -1,0 +1,49 @@
+steps:
+  # Collect environment variables
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        set -euo
+        get_secret() {
+          secret="$( gcloud secrets versions access latest --secret="$1" --format='get(payload.data)' | tr '_-' '/+' | base64 -d )"
+          if [ -z "$secret" ]; then
+              if [ -z "$2" ]; then
+                  gcloud builds cancel "$BUILD_ID"
+                  exit -1
+              else
+                  secret="$2"
+              fi
+          fi
+          echo "$secret"
+        }
+
+        echo "REDIS_PASSWORD=$( get_secret _SOS_REDIS_PASSWORD )" >> /workspace/.env
+        echo "REDIS_PORT=$( get_secret _SOS_REDIS_PORT )" >> /workspace/.env
+        echo "REDIS_HOST=$( get_secret _SOS_REDIS_HOST )" >> /workspace/.env
+
+        cp /workspace/.env /workspace/.env.prod
+        echo "REDIS_DB=$( get_secret _SOS_REDIS_DB )" >> /workspace/.env.prod
+        sed -i -e :a -e '/$/N; s/\n/[{!}]/; ta' /workspace/.env.prod
+  # Build container image with Docker
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --tag
+      - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
+      - .
+  # Deploy container image to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        set -euxo
+        mv --force /workspace/.env.prod /workspace/.env
+        gcloud run deploy $_SERVICE_NAME \
+        --region $_REGION --platform managed \
+        --set-env-vars="^[{!}]^$( cat /workspace/.env )" \
+        --image gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
+images:
+  - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
