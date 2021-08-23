@@ -2,7 +2,7 @@
 # {{ development }}
 #
 FROM node:alpine AS development
-CMD [ "yarn", "start:watch"]
+CMD [ "yarn", "start:watch" ]
 WORKDIR /opt/app
 
 COPY package.json yarn.loc[k] ./
