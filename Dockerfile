@@ -4,7 +4,6 @@
 FROM node:alpine AS development
 CMD [ "yarn", "start:watch"]
 WORKDIR /opt/app
-ENV REDIS_DB 21
 
 COPY package.json yarn.loc[k] ./
 RUN yarn install
@@ -14,7 +13,7 @@ COPY . .
 # {{ test }}
 #
 FROM development AS test
-ARG REDIS_DB 22
+ARG REDIS_DB 15
 RUN yarn test
 
 #
