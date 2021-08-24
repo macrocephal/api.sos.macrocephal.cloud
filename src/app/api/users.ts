@@ -3,7 +3,7 @@ import { v4 } from 'uuid';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
 import { UserService } from './../service/user.service';
-import { CREATED, ID, recycled, UPDATED, VALIDATION_ERRORS } from './schema';
+import { CREATED, ID, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
 
 export const users: Container.Visitor = container =>
     container.inject(SERVER_TOKEN).then(([server]) => server.route([
