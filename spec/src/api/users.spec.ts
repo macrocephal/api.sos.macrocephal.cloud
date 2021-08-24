@@ -8,6 +8,7 @@ import { app } from './../../../src/conf/app';
 import { APPLICATION_RECYCLE_TIMEOUT } from './../../../src/conf/create-env';
 import { REDIS_TOKEN } from './../../../src/conf/create-redis';
 import { SERVER_TOKEN } from './../../../src/conf/create-server';
+import faker from 'faker';
 
 describe('/users', () => {
     beforeEach(async () => {
@@ -32,7 +33,7 @@ describe('/users', () => {
     describe('/', () => {
         it('POST -> HTTP 201', async () => {
             const start = Date.now();
-            const email = 'john.doe@email.org';
+            const email = faker.internet.email();
             const { headers, result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
@@ -57,7 +58,7 @@ describe('/users', () => {
         // TODO: implement & test HTTP 409 Conflict - existing user with the given email
 
         it('POST -> HTTP 422 (bad email)', async () => {
-            const email = 'bad.email@dom.ain';
+            const email = 'john@doe.tld';
             const { headers, result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
@@ -90,11 +91,11 @@ describe('/users', () => {
     describe('/{id}', () => {
         it('PUT -> HTTP 205', async () => {
             const start = Date.now();
-            const email = 'jane.doe@email.org';
+            const email = faker.internet.email();
             const initial: User = (await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
-                    email: 'john.doe@email.org',
+                    email: faker.internet.email(),
                 },
             })).result as any;
             const { headers, result, statusCode } = await server.inject({
@@ -126,7 +127,7 @@ describe('/users', () => {
             const { result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'PUT', url: `/users/${v4()}`, payload: {
-                    email: 'jane.done@example.com',
+                    email: faker.internet.email(),
                 },
             });
 
@@ -135,7 +136,7 @@ describe('/users', () => {
         });
 
         it('PUT -> HTTP 422 (bad email)', async () => {
-            const email = 'bad.email@dom.ain';
+            const email = 'jane@doe.tld';
             const { headers, result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'PUT', url: `/users/${v4()}`, payload: {
@@ -166,11 +167,11 @@ describe('/users', () => {
 
         it('PATCH -> HTTP 205', async () => {
             const start = Date.now();
-            const email = 'jane.doe@email.org';
+            const email = faker.internet.email();
             const initial: User = (await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
-                    email: 'john.doe@email.org',
+                    email: faker.internet.email(),
                 },
             })).result as any;
             const { headers, result, statusCode } = await server.inject({
@@ -202,7 +203,7 @@ describe('/users', () => {
             const { result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'PATCH', url: `/users/${v4()}`, payload: {
-                    email: 'jane.done@example.com',
+                    email: faker.internet.email(),
                 },
             });
 
@@ -211,7 +212,7 @@ describe('/users', () => {
         });
 
         it('PATCH -> HTTP 422 (bad email)', async () => {
-            const email = 'bad.email@dom.ain';
+            const email = 'john@doe.tld';
             const { headers, result, statusCode } = await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'PATCH', url: `/users/${v4()}`, payload: {
@@ -242,7 +243,7 @@ describe('/users', () => {
 
         it('GET -> HTTP 200', async () => {
             const start = Date.now();
-            const email = 'jane.doe@email.org';
+            const email = faker.internet.email();
             const initial: User = (await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
@@ -284,7 +285,7 @@ describe('/users', () => {
             const { id }: User = (await server.inject({
                 headers: { contentType: 'application/json' },
                 method: 'POST', url: '/users', payload: {
-                    email: 'jane.doe@email.org',
+                    email: faker.internet.email(),
                 },
             })).result as any;
             const { result, statusCode } = await server.inject({
