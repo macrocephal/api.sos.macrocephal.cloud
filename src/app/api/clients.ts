@@ -1,9 +1,10 @@
-import Joi from 'joi';
+import Joi, { StringSchema } from 'joi';
 import { v4 } from 'uuid';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
 import { ClientService } from './../service/client.service';
-import { CREATED, ID, recycled, UPDATED, VALIDATION_ERRORS, id } from './schema';
+import { CREATED, ID, id, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
+import { userIdExists } from './util.validator';
 
 export const clients: Container.Visitor = container =>
     container.inject(SERVER_TOKEN).then(([server]) => server.route([
@@ -27,8 +28,10 @@ export const clients: Container.Visitor = container =>
                 },
                 validate: {
                     payload: Joi.object({
-                        userId: ID.id,
                         userAgent: Joi.string().required(),
+                        userId: (ID.id as StringSchema).concat(
+                            Joi.string().external(userIdExists(container))
+                        ),
                     }).label('ClientCreateRequest'),
                 },
             },
@@ -62,8 +65,10 @@ export const clients: Container.Visitor = container =>
                 },
                 validate: {
                     payload: Joi.object({
-                        userId: ID.id,
                         userAgent: Joi.string().required(),
+                        userId: (ID.id as StringSchema).concat(
+                            Joi.string().external(userIdExists(container))
+                        ),
                     }).label('ClientUpdateRequest'),
                     params: Joi.object({
                         ...ID,
@@ -100,8 +105,10 @@ export const clients: Container.Visitor = container =>
                 },
                 validate: {
                     payload: Joi.object({
-                        userId: id.id,
                         userAgent: Joi.string(),
+                        userId: (id.id as StringSchema).concat(
+                            Joi.string().external(userIdExists(container, true))
+                        ),
                     }).label('ClientPatchRequest'),
                     params: Joi.object({
                         ...ID,
