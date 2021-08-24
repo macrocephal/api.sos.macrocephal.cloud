@@ -18,7 +18,7 @@ export const users: Container.Visitor = container =>
                         201: Joi.object({
                             ...CREATED,
                             email: Joi.string().email().required(),
-                        }).id('CreatedUser').label('CreatedUser'),
+                        }).id('UserCreated').label('UserCreated'),
                         409: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -26,7 +26,7 @@ export const users: Container.Visitor = container =>
                 validate: {
                     payload: Joi.object({
                         email: Joi.string().email().required(),
-                    }).label('PostUser'),
+                    }).label('UserCreateRequest'),
                 },
             },
             async handler(request, h) {
@@ -51,7 +51,7 @@ export const users: Container.Visitor = container =>
                             ...recycled,
                             ...UPDATED,
                             email: Joi.string().email().required(),
-                        }).id('UpdatedUser').label('UpdatedUser'),
+                        }).id('UserUpdated').label('UserUpdated'),
                         404: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -59,7 +59,7 @@ export const users: Container.Visitor = container =>
                 validate: {
                     payload: Joi.object({
                         email: Joi.string().email().required(),
-                    }).label('PutUser'),
+                    }).label('UserUpdateRequest'),
                     params: Joi.object({
                         ...ID,
                     }),
@@ -87,7 +87,7 @@ export const users: Container.Visitor = container =>
                             ...recycled,
                             ...UPDATED,
                             email: Joi.string().email().required(),
-                        }).id('UpdatedUser').label('UpdatedUser'),
+                        }).id('UserUpdated').label('UserUpdated'),
                         404: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -95,7 +95,7 @@ export const users: Container.Visitor = container =>
                 validate: {
                     payload: Joi.object({
                         email: Joi.string().email(),
-                    }).label('PatchUser'),
+                    }).label('UserPatchRequest'),
                     params: Joi.object({
                         ...ID,
                     }),
@@ -122,7 +122,7 @@ export const users: Container.Visitor = container =>
                         200: Joi.object({
                             ...recycled,
                             email: Joi.string().email().required(),
-                        }).id('ExistingUser').label('ExistingUser'),
+                        }).id('UserRecorded').label('UserRecorded'),
                         404: Joi.valid().required(),
                     },
                 },

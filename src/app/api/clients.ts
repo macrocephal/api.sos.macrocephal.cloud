@@ -20,7 +20,7 @@ export const clients: Container.Visitor = container =>
                             ...CREATED,
                             userId: ID.id,
                             userAgent: Joi.string().required(),
-                        }).id('CreatedClient').label('CreatedClient'),
+                        }).id('ClientCreated').label('ClientCreated'),
                         409: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -29,7 +29,7 @@ export const clients: Container.Visitor = container =>
                     payload: Joi.object({
                         userId: ID.id,
                         userAgent: Joi.string().required(),
-                    }).label('PostClient'),
+                    }).label('ClientCreateRequest'),
                 },
             },
             async handler(request, h) {
@@ -55,7 +55,7 @@ export const clients: Container.Visitor = container =>
                             ...UPDATED,
                             userId: ID.id,
                             userAgent: Joi.string().required(),
-                        }).id('UpdatedClient').label('UpdatedClient'),
+                        }).id('ClientUpdated').label('ClientUpdated'),
                         404: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -64,7 +64,7 @@ export const clients: Container.Visitor = container =>
                     payload: Joi.object({
                         userId: ID.id,
                         userAgent: Joi.string().required(),
-                    }).label('PutClient'),
+                    }).label('ClientUpdateRequest'),
                     params: Joi.object({
                         ...ID,
                     }),
@@ -93,7 +93,7 @@ export const clients: Container.Visitor = container =>
                             ...UPDATED,
                             userId: ID.id,
                             userAgent: Joi.string().required(),
-                        }).id('UpdatedClient').label('UpdatedClient'),
+                        }).id('ClientUpdated').label('ClientUpdated'),
                         404: Joi.valid().required(),
                         422: VALIDATION_ERRORS,
                     },
@@ -102,7 +102,7 @@ export const clients: Container.Visitor = container =>
                     payload: Joi.object({
                         userId: id.id,
                         userAgent: Joi.string(),
-                    }).label('PatchClient'),
+                    }).label('ClientPatchRequest'),
                     params: Joi.object({
                         ...ID,
                     }),
@@ -130,7 +130,7 @@ export const clients: Container.Visitor = container =>
                             ...recycled,
                             userId: ID.id,
                             userAgent: Joi.string().required(),
-                        }).id('ExistingClient').label('ExistingClient'),
+                        }).id('ClientRecorded').label('ClientRecorded'),
                         404: Joi.valid().required(),
                     },
                 },
