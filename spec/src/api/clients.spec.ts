@@ -100,6 +100,30 @@ describe('/clients', () => {
             expect(statusCode).toBe(422);
             expect(error).toHaveSize(1);
         });
+
+        it('POST -> HTTP 422 (userId not found)', async () => {
+            const userId = v4();
+            const { headers, result, statusCode } = await server.inject({
+                headers: { contentType: 'application/json' },
+                method: 'POST', url: '/clients', payload: {
+                    userAgent: faker.internet.userAgent(),
+                    userId,
+                },
+            });
+
+            expect(statusCode).toBe(422);
+            expect(headers['content-type']).toMatch(/application\/json/);
+            expect(Joi.array().length(1).items(Joi.object({
+                context: Joi.object({
+                    value: Joi.valid(userId),
+                    key: Joi.valid('userId'),
+                    label: Joi.valid('userId'),
+                }).unknown(),
+                message: Joi.string().required(),
+                type: Joi.valid('userId.notFound'),
+                path: Joi.array().length(1).items(Joi.valid('userId')).required(),
+            })).required().validate(result).error).toBe(void 0);
+        });
     });
 
     describe('/{id}', () => {
@@ -184,6 +208,37 @@ describe('/clients', () => {
             expect(error).toHaveSize(1);
         });
 
+        it('PUT -> HTTP 422 (userId not found)', async () => {
+            const userId = v4();
+            const { id } = (await server.inject({
+                headers: { contentType: 'application/json' },
+                method: 'POST', url: '/clients', payload: {
+                    userAgent: faker.internet.userAgent(),
+                    userId: user.id,
+                },
+            })).result as Client;
+            const { headers, result, statusCode } = await server.inject({
+                headers: { contentType: 'application/json' },
+                method: 'PUT', url: `/clients/${id}`, payload: {
+                    userAgent: faker.internet.userAgent(),
+                    userId,
+                },
+            });
+
+            expect(statusCode).toBe(422);
+            expect(headers['content-type']).toMatch(/application\/json/);
+            expect(Joi.array().length(1).items(Joi.object({
+                context: Joi.object({
+                    value: Joi.valid(userId),
+                    key: Joi.valid('userId'),
+                    label: Joi.valid('userId'),
+                }).unknown(),
+                message: Joi.string().required(),
+                type: Joi.valid('userId.notFound'),
+                path: Joi.array().length(1).items(Joi.valid('userId')).required(),
+            })).required().validate(result).error).toBe(void 0);
+        });
+
         it('PATCH -> HTTP 205', async () => {
             const start = Date.now();
             const userAgent = faker.internet.userAgent();
@@ -201,6 +256,7 @@ describe('/clients', () => {
                 },
             });
             const client: Client = result as any;
+
 
             expect(statusCode).toBe(205);
             expect(Joi.object({
@@ -261,6 +317,36 @@ describe('/clients', () => {
             expect(headers['content-type']).toMatch(/application\/json/);
             expect(statusCode).toBe(422);
             expect(error).toHaveSize(1);
+        });
+
+        it('PATCH -> HTTP 422 (userId not found)', async () => {
+            const userId = v4();
+            const { id } = (await server.inject({
+                headers: { contentType: 'application/json' },
+                method: 'POST', url: '/clients', payload: {
+                    userAgent: faker.internet.userAgent(),
+                    userId: user.id,
+                },
+            })).result as Client;
+            const { headers, result, statusCode } = await server.inject({
+                headers: { contentType: 'application/json' },
+                method: 'PATCH', url: `/clients/${id}`, payload: {
+                    userId,
+                },
+            });
+
+            expect(statusCode).toBe(422);
+            expect(headers['content-type']).toMatch(/application\/json/);
+            expect(Joi.array().length(1).items(Joi.object({
+                context: Joi.object({
+                    value: Joi.valid(userId),
+                    key: Joi.valid('userId'),
+                    label: Joi.valid('userId'),
+                }).unknown(),
+                message: Joi.string().required(),
+                type: Joi.valid('userId.notFound'),
+                path: Joi.array().length(1).items(Joi.valid('userId')).required(),
+            })).required().validate(result).error).toBe(void 0);
         });
 
         it('GET -> HTTP 200', async () => {
