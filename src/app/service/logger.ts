@@ -3,7 +3,7 @@ import { APPLICATION_NAME } from './../../conf/create-env';
 import { Container } from './../../container';
 
 export class Logger {
-    readonly #matcher = /Error\s+at[^\n]+\n\s+at \S+ \(.*\/src\/(.*)\.[tj]s:\d+:\d+\)/;
+    readonly #matcher = /\(.*[\\\/]src[\\\/](.*)\.[tj]s:\d+:\d+\)/g;
     #prefixResolver: (file: string | undefined) => string;
 
     constructor(containerOrNamespace: Container | string) {
@@ -19,37 +19,37 @@ export class Logger {
     }
 
     get log(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:log`);
     }
 
     get info(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:info`);
     }
 
     get warn(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:warn`);
     }
 
     get debug(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:debug`);
     }
 
     get error(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:error`);
     }
 
     get fatal(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:fatal`);
     }
 
     get trace(): Debugger {
-        const file = new Error().stack?.match(this.#matcher)?.[1];
+        const [, file] = this.#matcher.exec(new Error().stack!)!;
         return debug(`${this.#prefixResolver(file)}:trace`);
     }
 
