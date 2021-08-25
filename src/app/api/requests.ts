@@ -161,6 +161,7 @@ export const requests: Container.Visitor = container =>
                 return $request ? h.response($request).code(200) : h.response().code(404);
             },
         },
+        // TODO: Implement `GET /requests/{id}/dispatches`
         {
             method: 'DELETE',
             path: '/requests/{id}',
