@@ -1,6 +1,7 @@
-import { ClientService } from './../service/client.service';
+import { RequestService } from './../service/request.service';
 import Joi, { ExternalValidationFunction } from 'joi';
 import { Container } from './../../container';
+import { ClientService } from './../service/client.service';
 import { UserService } from './../service/user.service';
 
 export const userIdExists = (container: Container, optional = false): ExternalValidationFunction =>
@@ -19,10 +20,9 @@ export const userIdExists = (container: Container, optional = false): ExternalVa
                     label: 'userId',
                     key: 'userId',
                 },
-            }], userId)
+            }], userId);
         }
     };
-
 
 export const clientIdExists = (container: Container, optional = false): ExternalValidationFunction =>
     async clientId => {
@@ -40,6 +40,26 @@ export const clientIdExists = (container: Container, optional = false): External
                     label: 'clientId',
                     key: 'clientId',
                 },
-            }], clientId)
+            }], clientId);
+        }
+    };
+
+export const requestIdExists = (container: Container, optional = false): ExternalValidationFunction =>
+    async requestId => {
+        if (optional && void 0 === requestId) return;
+
+        const [requestService] = await container.inject(RequestService);
+
+        if (!await requestService.exists(requestId)) {
+            throw new Joi.ValidationError('requestId.notFound', [{
+                message: '"requestId" does not exists',
+                type: 'requestId.notFound',
+                path: ["requestId"],
+                context: {
+                    value: requestId,
+                    label: 'requestId',
+                    key: 'requestId',
+                },
+            }], requestId);
         }
     };
