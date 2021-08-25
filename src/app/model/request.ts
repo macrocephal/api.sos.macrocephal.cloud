@@ -4,6 +4,6 @@ import { Model } from './model';
 export interface Request extends Model {
     clientId: string;
 
-    maxRadius: string;
+    radius: string;
     kind: Kind;
 }
