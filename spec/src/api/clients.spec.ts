@@ -17,7 +17,6 @@ describe('/clients', () => {
             .register(APPLICATION_RECYCLE_TIMEOUT, () => recycleTimeout)
             .inject(SERVER_TOKEN, REDIS_TOKEN, ClientService));
         recycleTimeout = 1 + Math.round(2 * Math.random());
-        user
         await server.initialize();
         await redis.flushdb();
         // @ts-ignore - Type 'object | undefined' is not assignable to type 'User'.
