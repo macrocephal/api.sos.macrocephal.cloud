@@ -44,7 +44,12 @@ describe('/requests', () => {
         faker.datatype.number({ min: 0, max: Number.MAX_SAFE_INTEGER, precision: 2 }) / 100,
         ['m', 'km', 'mi', 'ft'][Math.round(2 * Math.random())],
     ].join('');
-    const getKind = () => faker.random.word().toUpperCase().replace(/-/g, '');
+    // @ts-ignore - Not all code paths return a value.ts(7030)
+    const getKind = () => {
+        for (let word; word = faker.random.word().toUpperCase();) {
+            if (/^\w+$/.test(word)) return word;
+        }
+    };
 
     let requestService: RequestService;
     let recycleTimeout: number;
