@@ -29,6 +29,7 @@ export const createMigrator: Container.Visitor = container =>
 
             try {
                 await runner(redis);
+                await redis.set(key, version);
                 logger.debug(` MigrationSuccess - version:${version} (${description})`);
             } catch (error) {
                 logger.debug(`   MigrationError - version:${version} (${description})`);
