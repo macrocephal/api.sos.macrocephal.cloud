@@ -10,6 +10,7 @@ export const APPLICATION_LICENSE: Token<string> = Symbol('Application license');
 export const APPLICATION_VERSION: Token<string> = Symbol('Application version');
 export const APPLICATION_DESCRIPTION: Token<string> = Symbol('Application description');
 export const APPLICATION_RECYCLE_TIMEOUT: Token<number> = Symbol('Application recycle timeout');
+export const APPLICATION_MIGRATION_VERSION_KEY: Token<string> = Symbol('Application migration version key');
 
 export const REDIS_DB: Token<number> = Symbol('Redis db');
 export const REDIS_PORT: Token<number> = Symbol('Redis port');
@@ -28,6 +29,7 @@ const {
     REDIS_PORT: REDIS_PORT_ENV = 6379,
     REDIS_DB: REDID_DB_ENV = 0,
 
+    MIGRATION_VERSION_KEY: MIGRATION_VERSION_KEY_ENV = 'migration:version',
     RECYCLE_TIMEOUT: RECYCLE_TIMEOUT_ENV = 3 * 24 * 3600,
 
     HOST = '0.0.0.0',
@@ -44,6 +46,7 @@ export const createEnv = (container: Container) => {
     container.register(REDIS_DB, () => +REDID_DB_ENV || 0);
 
     container.register(APPLICATION_RECYCLE_TIMEOUT, () => Number(RECYCLE_TIMEOUT_ENV) || 3); //  3s seconds seems good for testing pusposes
+    container.register(APPLICATION_MIGRATION_VERSION_KEY, () => MIGRATION_VERSION_KEY_ENV);
     container.register(APPLICATION_DESCRIPTION, () => packAge.description);
     container.register(APPLICATION_LICENSE, () => packAge.license);
     container.register(APPLICATION_VERSION, () => packAge.version);

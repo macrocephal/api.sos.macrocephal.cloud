@@ -10,14 +10,15 @@ import { MatchService } from './../app/service/match.service';
 import { RequestService } from './../app/service/request.service';
 import { UserService } from './../app/service/user.service';
 import { Container } from './../container';
-import { createEnv } from './create-env';
+import { APPLICATION_NAME, createEnv } from './create-env';
+import { createMigrator } from './create-migrator';
 import { createRedis } from './create-redis';
 import { createServer } from './create-server';
 import { createServerPlugin } from './create-server-plugin';
 
 export const app = (container = new Container()): Container =>
     container
-        .visit(createEnv, createRedis, createServer, createServerPlugin)
+        .visit(createEnv, createRedis, createServer, createMigrator, createServerPlugin)
         .visit(dispatches, requests, matches, clients, users)
         .register(DispatchService)
         .register(RequestService)
