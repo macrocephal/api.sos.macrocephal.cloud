@@ -1,59 +1,57 @@
 import { debug, Debugger } from 'debug';
-import { APPLICATION_NAME } from './../../conf/create-env';
-import { Container } from './../../container';
 
 export class Logger {
-    readonly #matcher = /\(.*[\\\/]src[\\\/](.*)\.[tj]s:\d+:\d+\)/g;
-    #prefixResolver: (file: string | undefined) => string;
+    #namespace = '<[not-resolved]>';
 
-    constructor(containerOrNamespace: Container | string) {
-        if ('string' === typeof containerOrNamespace) {
-            this.#prefixResolver = () => containerOrNamespace;
+    constructor(namespace: string);
+    constructor(namespaceResolver: (() => string) | (() => Promise<string>));
+    constructor(namespaceOrNamespaceResolver: string | (() => string) | (() => Promise<string>)) {
+        if ('string' === typeof namespaceOrNamespaceResolver) {
+            this.#namespace = namespaceOrNamespaceResolver;
         } else {
-            let namespace: string;
-            const getNamespace = () => namespace;
-
-            containerOrNamespace.inject(APPLICATION_NAME).then(([ns]) => namespace = ns);
-            this.#prefixResolver = file => `${getNamespace()}:src/${file}`;
+            Promise.resolve(namespaceOrNamespaceResolver()).then(namespace => this.#namespace = namespace);
         }
     }
 
-    get log(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:log`);
+    log(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('log')(...args);
     }
 
-    get info(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:info`);
+    info(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('info')(...args);
     }
 
-    get warn(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:warn`);
+    warn(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('warn')(...args);
     }
 
-    get debug(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:debug`);
+    debug(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('debug')(...args);
     }
 
-    get error(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:error`);
+    error(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('error')(...args);
     }
 
-    get fatal(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:fatal`);
+    fatal(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('fatal')(...args);
     }
 
-    get trace(): Debugger {
-        const [, file] = this.#matcher.exec(new Error().stack!)!;
-        return debug(`${this.#prefixResolver(file)}:trace`);
+    trace(...args: Parameters<Debugger>) {
+        this.#debuggerFactory('trace')(...args);
     }
 
     level(level: 'log' | 'info' | 'warn' | 'debug' | 'error' | 'fatal' | 'trace') {
-        return this[level];
+        return this[level].bind(this);
+    }
+
+    #debuggerFactory(level: Parameters<Logger['level']>[0]): Debugger {
+        let path = [...new Error().stack!.matchAll(/\((.*)\.[tj]s(?::\d+){2}\)/g)]
+            .find(([, target], _i, matches) => target !== matches[0]?.[1])
+            ?.[1]
+            ?.replace(/^webpack:\/\/[^\/\\]+[\/\\](.*)$/, '$1');
+        path = path?.startsWith(process.cwd()) ? path.split(process.cwd())?.[1]?.substr(1) : path;
+
+        return debug(`${this.#namespace}:${path}:${level}`);
     }
 }

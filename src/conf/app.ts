@@ -24,5 +24,5 @@ export const app = (container = new Container()): Container =>
         .register(ClientService)
         .register(MatchService)
         .register(UserService)
-        .register(Logger)
+        .register(Logger, new Logger(() => container.inject(APPLICATION_NAME).then(([ns]) => ns)))
     ;
