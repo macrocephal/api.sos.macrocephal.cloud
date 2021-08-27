@@ -253,6 +253,7 @@ export const clients: Container.Visitor = container =>
                     status: {
                         204: Joi.valid().required(),
                         404: Joi.valid().required(),
+                        422: VALIDATION_ERRORS,
                     },
                 },
                 validate: {
