@@ -461,7 +461,7 @@ describe('/clients', () => {
                 })).required().validate(result).error).toBe(void 0);
             });
 
-            fit('POST -> HTTP 422 (out of lower bounds longitude)', async () => {
+            it('POST -> HTTP 422 (out of lower bounds longitude)', async () => {
                 const longitude = -90.00000001;
                 const { headers, result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
