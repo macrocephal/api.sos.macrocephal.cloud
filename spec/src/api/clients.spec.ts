@@ -509,5 +509,88 @@ describe('/clients', () => {
                 })).required().validate(result).error).toBe(void 0);
             });
         });
+
+        describe('/candidacies', () => {
+            beforeEach(async () => {
+                ({ id: clientId } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: '/clients', payload: {
+                        userAgent: faker.internet.userAgent(),
+                        userId: user.id,
+                    },
+                })).result as any);
+            });
+
+            // @ts-ignore - Not all code paths return a value.ts(7030)
+            const getKind = () => {
+                for (let word; word = faker.random.word().toUpperCase();) {
+                    if (/^\w+$/.test(word)) return word;
+                }
+            };
+
+            let clientId: string;
+
+            it('POST -> HTTP 204 (enabled: true)', async () => {
+                const enabled = true;
+                const kind = getKind();
+                const start = Date.now();
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/candidacies`, payload: {
+                        enabled,
+                        kind,
+                    },
+                });
+                const end = Date.now();
+                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+
+                expect(statusCode).toBe(204);
+                expect(result).toBe(null as never);
+                expect(BigInt(score)).toBeLessThanOrEqual(BigInt(`${end}000`) as unknown as number);
+                expect(BigInt(score)).toBeGreaterThanOrEqual(BigInt(`${start}000`) as unknown as number);
+            });
+
+            it('POST -> HTTP 204 (enabled: false)', async () => {
+                const enabled = false;
+                const kind = getKind();
+                await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/candidacies`, payload: {
+                        enabled: true,
+                        kind,
+                    },
+                });
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/candidacies`, payload: {
+                        enabled,
+                        kind,
+                    },
+                });
+                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+
+                expect(statusCode).toBe(204);
+                expect(score).toBe(null as never);
+                expect(result).toBe(null as never);
+            });
+
+            it('POST -> HTTP 204 (missing `enabled`)', async () => {
+                const kind = getKind();
+                const start = Date.now();
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/candidacies`, payload: {
+                        kind,
+                    },
+                });
+                const end = Date.now();
+                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+
+                expect(statusCode).toBe(204);
+                expect(result).toBe(null as never);
+                expect(BigInt(score)).toBeLessThanOrEqual(BigInt(`${end}000`) as unknown as number);
+                expect(BigInt(score)).toBeGreaterThanOrEqual(BigInt(`${start}000`) as unknown as number);
+            });
+        });
     });
 });
