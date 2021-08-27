@@ -259,7 +259,7 @@ export const clients: Container.Visitor = container =>
                     payload: Joi.object({
                         ...KIND,
                         enabled: Joi.boolean().default(true),
-                    }),
+                    }).id('Candidacy').label('Candidacy'),
                     params: Joi.object({
                         ...ID,
                     }),
