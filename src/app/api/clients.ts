@@ -5,7 +5,7 @@ import { Container } from '../../container';
 import { REDIS_TOKEN } from './../../conf/create-redis';
 import { ClientService } from './../service/client.service';
 import { Logger } from './../service/logger';
-import { CREATED, ID, id, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
+import { CREATED, ID, id, KIND, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
 import { userIdExists } from './util.validator';
 
 export const clients: Container.Visitor = container =>
@@ -212,15 +212,65 @@ export const clients: Container.Visitor = container =>
                 const clientKey = clientService.key(clientId);
 
                 try {
-                    const result = +await redis.eval(
+                    const result = await redis.eval(
                         `if 1 == redis.call('EXISTS', KEYS[1]) then redis.call('GEOADD', KEYS[2], ARGV[1], ARGV[2], ARGV[3]); return 1; end return 0`,
                         2, clientKey, `data:positions`, `${latitude}`, `${longitude}`, clientId);
 
-                    return h.response().code(result ? 204 : 404);
+                    // NOTE: I sometimes got HTTP 404 during tests
+                    logger.fatal('FIXME: Remove this error when bug is understood and fixed!');
+                    logger.fatal('CONTEXT::', { latitude, longitude, clientId, clientKey, result });
+
+                    return h.response().code(+result ? 204 : 404);
                 } catch (error) {
+                    // NOTE: I sometimes got HTTP 500 during tests
                     logger.fatal('FIXME: Remove this error when bug is understood and fixed!');
                     logger.fatal('CONTEXT::', { latitude, longitude, clientId, clientKey });
                     logger.fatal(error);
+                    return h.response().code(404);
+                }
+            },
+        },
+        // Client's candidacies
+        {
+            method: 'POST',
+            path: '/clients/{id}/candidacies',
+            options: {
+                tags: ['api'],
+                description: 'Enable or disable requesters\'s kind',
+                response: {
+                    status: {
+                        204: Joi.valid().required(),
+                        404: Joi.valid().required(),
+                    },
+                },
+                validate: {
+                    payload: Joi.object({
+                        ...KIND,
+                        enabled: Joi.boolean().default(true),
+                    }),
+                    params: Joi.object({
+                        ...ID,
+                    }),
+                },
+            },
+            async handler(request, h) {
+                const clientId = request.params.id;
+                const [redis, clientService] = await container.inject(REDIS_TOKEN, ClientService);
+                const { kind, enabled } = request.payload as { kind: string, enabled: boolean };
+                const client = await clientService.search(clientId);
+                const [, nanos] = process.hrtime();
+                const score = BigInt(Date.now()) * 1000n + (BigInt(nanos) % 1_000n);
+
+
+                if (client) {
+                    if (enabled) {
+                        await redis.zadd(`data:donations:${kind}`, score.toString(), clientId);
+                    } else {
+                        await redis.zrem(`data:donations:${kind}`, clientId);
+                    }
+
+                    return h.response().code(204);
+                } else {
                     return h.response().code(404);
                 }
             },
