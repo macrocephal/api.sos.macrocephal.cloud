@@ -272,19 +272,17 @@ export const clients: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const clientId = request.params.id;
                 const [redis, clientService] = await container.inject(REDIS_TOKEN, ClientService);
                 const { kind, enabled } = request.payload as { kind: string, enabled: boolean };
-                const client = await clientService.search(clientId);
+                const { userId } = await clientService.search(request.params.id) ?? {};
                 const [, nanos] = process.hrtime();
                 const score = BigInt(Date.now()) * 1000n + (BigInt(nanos) % 1_000n);
 
-
-                if (client) {
+                if (userId) {
                     if (enabled) {
-                        await redis.zadd(`data:candidacies:${kind}`, score.toString(), clientId);
+                        await redis.zadd(`data:candidacies:${kind}`, score.toString(), userId);
                     } else {
-                        await redis.zrem(`data:candidacies:${kind}`, clientId);
+                        await redis.zrem(`data:candidacies:${kind}`, userId);
                     }
 
                     return h.response().code(204);
