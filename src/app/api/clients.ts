@@ -271,12 +271,14 @@ export const clients: Container.Visitor = container =>
                 const { userId } = (await clientService.search(request.params.id)) ?? {};
 
                 if (userId) {
-                    const kinds: string[] = []
-                    const promises = (await redis.keys('data:candidacies:*')).map(key => redis
-                        .zscore(key, userId).then(isMember => [key, isMember] as const));
+                    const kinds: string[] = [];
+                    const keys = await redis.keys('data:candidacies:*');
+                    const promises = (keys).map(key => redis.zscore(key, userId));
 
-                    for (const [key, isMember] of await Promise.all(promises)) {
-                        isMember && kinds.push(key.split('data:candidacies:')?.[1]!);
+                    for (let i = 0, l = promises.length; i < l; i++) {
+                        if (null !== await promises[i]) {
+                            kinds.push(keys[i]!.split('data:candidacies:')?.[1]!);
+                        }
                     }
 
                     return h.response(kinds).code(200)
