@@ -367,5 +367,146 @@ describe('/clients', () => {
             expect(result).toBe(null as never);
             expect(statusCode).toBe(404);
         });
+
+        describe('/position', () => {
+            beforeEach(async () => {
+                ({ id: clientId } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: '/clients', payload: {
+                        userAgent: faker.internet.userAgent(),
+                        userId: user.id,
+                    },
+                })).result as any);
+            });
+
+            let clientId: string;
+
+            it('POST -> HTTP 204', async () => {
+                const longitude = faker.address.longitude(90, -90, 8);
+                const latitude = faker.address.latitude(85.05112878, -85.05112878, 8);
+                const { result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/position`, payload: {
+                        longitude,
+                        latitude,
+                    },
+                }));
+                const intermediate = await redis.geopos('data:positions', clientId);
+
+                // NOTE: 5-digit precision seems to be the Redis server accuracy
+                expect(intermediate[0]?.[1]).toBeCloseTo(+longitude, 5);
+                expect(intermediate[0]?.[0]).toBeCloseTo(+latitude, 5);
+                expect(result).toBe(null as never);
+                expect(statusCode).toBe(204);
+            });
+
+            it('POST -> HTTP 404', async () => {
+                const { result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${v4()}/position`, payload: {
+                        latitude: faker.address.latitude(85.05112878, -85.05112878, 8),
+                        longitude: faker.address.longitude(90, -90, 8),
+                    },
+                }));
+                expect(result).toBe(null as never);
+                expect(statusCode).toBe(404);
+            });
+
+            it('POST -> HTTP 422 (out of lower bounds latitude)', async () => {
+                const latitude = -85.05112879;
+                const { headers, result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${v4()}/position`, payload: {
+                        longitude: faker.address.longitude(90, -90, 8),
+                        latitude,
+                    },
+                }));
+                expect(statusCode).toBe(422);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(1).items(Joi.object({
+                    context: Joi.object({
+                        value: Joi.valid(latitude).required(),
+                        key: Joi.valid('latitude').required(),
+                        label: Joi.valid('latitude').required(),
+                        limit: Joi.valid(-85.05112878).required(),
+                    }).unknown(),
+                    message: Joi.string().required(),
+                    type: Joi.valid('number.min'),
+                    path: Joi.array().length(1).items(Joi.valid('latitude')).required(),
+                })).required().validate(result).error).toBe(void 0);
+            });
+
+            it('POST -> HTTP 422 (out of upper bounds latitude)', async () => {
+                const latitude = 85.05112879;
+                const { headers, result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${v4()}/position`, payload: {
+                        longitude: faker.address.longitude(90, -90, 8),
+                        latitude,
+                    },
+                }));
+                expect(statusCode).toBe(422);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(1).items(Joi.object({
+                    context: Joi.object({
+                        value: Joi.valid(latitude).required(),
+                        key: Joi.valid('latitude').required(),
+                        label: Joi.valid('latitude').required(),
+                        limit: Joi.valid(85.05112878).required(),
+                    }).unknown(),
+                    message: Joi.string().required(),
+                    type: Joi.valid('number.max'),
+                    path: Joi.array().length(1).items(Joi.valid('latitude')).required(),
+                })).required().validate(result).error).toBe(void 0);
+            });
+
+            fit('POST -> HTTP 422 (out of lower bounds longitude)', async () => {
+                const longitude = -90.00000001;
+                const { headers, result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${v4()}/position`, payload: {
+                        latitude: faker.address.latitude(85.05112878, -85.05112878, 8),
+                        longitude,
+                    },
+                }));
+                expect(statusCode).toBe(422);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(1).items(Joi.object({
+                    context: Joi.object({
+                        limit: Joi.valid(-90).required(),
+                        value: Joi.valid(longitude).required(),
+                        key: Joi.valid('longitude').required(),
+                        label: Joi.valid('longitude').required(),
+                    }).unknown(),
+                    message: Joi.string().required(),
+                    type: Joi.valid('number.min'),
+                    path: Joi.array().length(1).items(Joi.valid('longitude')).required(),
+                })).required().validate(result).error).toBe(void 0);
+            });
+
+            it('POST -> HTTP 422 (out of upper bounds longitude)', async () => {
+                const longitude = 90.00000001;
+                const { headers, result, statusCode } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${v4()}/position`, payload: {
+                        latitude: faker.address.latitude(85.05112878, -85.05112878, 8),
+                        longitude,
+                    },
+                }));
+                expect(statusCode).toBe(422);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(1).items(Joi.object({
+                    context: Joi.object({
+                        limit: Joi.valid(90).required(),
+                        value: Joi.valid(longitude).required(),
+                        key: Joi.valid('longitude').required(),
+                        label: Joi.valid('longitude').required(),
+                    }).unknown(),
+                    message: Joi.string().required(),
+                    type: Joi.valid('number.max'),
+                    path: Joi.array().length(1).items(Joi.valid('longitude')).required(),
+                })).required().validate(result).error).toBe(void 0);
+            });
+        });
     });
 });
