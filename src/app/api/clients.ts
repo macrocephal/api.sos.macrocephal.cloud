@@ -278,8 +278,6 @@ export const clients: Container.Visitor = container =>
                     for (const [key, isMember] of await Promise.all(promises)) {
                         isMember && kinds.push(key.split('data:candidacies:')?.[1]!);
                     }
-                    console.log({ kinds });
-
 
                     return h.response(kinds).code(200)
                 } else {
