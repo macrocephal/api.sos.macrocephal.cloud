@@ -225,7 +225,12 @@ export const clients: Container.Visitor = container =>
 
                 try {
                     const result = await redis.eval(
-                        `if 1 == redis.call('EXISTS', KEYS[1]) then redis.call('GEOADD', KEYS[2], ARGV[1], ARGV[2], ARGV[3]); return 1; end return 0`,
+                        `if 1 == redis.call('EXISTS', KEYS[1]) then
+                            redis.call('GEOADD', KEYS[2], ARGV[1], ARGV[2], ARGV[3]);
+                            return 1;
+                        end
+
+                        return 0`,
                         2, clientKey, `data:positions`, `${latitude}`, `${longitude}`, clientId);
 
                     // NOTE: I sometimes got HTTP 404 during tests
