@@ -40,10 +40,4 @@ export const createMigrator: Container.Visitor = container =>
     });
 
 const migrations: Record<number, { description: string, runner: (redis: Redis) => Promise<void> }> = {
-    1629910336684: {
-        description: "init",
-        async runner(redis) {
-            await redis.send_command('FT.CREATE', 'index:client', 'ON', 'HASH', 'PREFIX', '1', 'data:client:', 'SCHEMA', 'id', 'NUMERIC', 'SORTABLE', 'userId', 'NUMERIC', 'SORTABLE');
-        }
-    },
 };
