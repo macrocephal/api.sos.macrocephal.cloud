@@ -545,7 +545,7 @@ describe('/clients', () => {
                     },
                 });
                 const end = Date.now();
-                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
 
                 expect(statusCode).toBe(204);
                 expect(result).toBe(null as never);
@@ -570,7 +570,7 @@ describe('/clients', () => {
                         kind,
                     },
                 });
-                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
 
                 expect(statusCode).toBe(204);
                 expect(score).toBe(null as never);
@@ -587,7 +587,7 @@ describe('/clients', () => {
                     },
                 });
                 const end = Date.now();
-                const score = await redis.zscore(`data:donations:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
 
                 expect(statusCode).toBe(204);
                 expect(result).toBe(null as never);

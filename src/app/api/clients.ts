@@ -276,9 +276,9 @@ export const clients: Container.Visitor = container =>
 
                 if (client) {
                     if (enabled) {
-                        await redis.zadd(`data:donations:${kind}`, score.toString(), clientId);
+                        await redis.zadd(`data:candidacies:${kind}`, score.toString(), clientId);
                     } else {
-                        await redis.zrem(`data:donations:${kind}`, clientId);
+                        await redis.zrem(`data:candidacies:${kind}`, clientId);
                     }
 
                     return h.response().code(204);
