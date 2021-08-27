@@ -45,6 +45,7 @@ describe('/dispatches', () => {
     });
 
     afterEach(async () => {
+        await redis.flushall();
         await redis.disconnect(false);
         await server.stop();
     });

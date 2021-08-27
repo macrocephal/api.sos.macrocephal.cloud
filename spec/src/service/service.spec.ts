@@ -45,7 +45,10 @@ describe('Service', () => {
         await redis.flushdb();
     });
 
-    afterEach(() => redis.flushdb());
+    afterEach(async () => {
+        await redis.flushall();
+        await redis.disconnect(false);
+    });
 
     type TestUser = Model & { email: string, age: number };
     let service: Service<TestUser>;
