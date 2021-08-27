@@ -38,13 +38,18 @@ export const clients: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const [clientService] = await container.inject(ClientService);
+                const [redis, clientService] = await container.inject(REDIS_TOKEN, ClientService);
                 const client = await clientService.create({
                     ...request.payload as object,
                     id: v4(),
                 } as never);
 
-                return client ? h.response(client).code(201) : h.response().code(404);
+                if (client) {
+                    await redis.sadd(`data:user-clients:${client.userId}`, client.id);
+                    return h.response(client).code(201);
+                } else {
+                    return h.response().code(404);
+                }
             },
         },
         {
@@ -175,10 +180,17 @@ export const clients: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const [clientService] = await container.inject(ClientService);
+                const [redis, clientService] = await container.inject(REDIS_TOKEN, ClientService);
+                const client = await clientService.search(request.params.id);
                 const deleted = await clientService.recycle(request.params.id);
 
-                return h.response().code(deleted ? 204 : 404);
+
+                if (deleted) {
+                    await redis.srem(`data:user-clients:${client.userId}`, client.id);
+                    return h.response(client).code(204);
+                } else {
+                    return h.response().code(404);
+                }
             },
         },
         // Client's last position
