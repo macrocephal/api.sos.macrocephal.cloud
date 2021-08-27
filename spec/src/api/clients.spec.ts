@@ -533,6 +533,34 @@ describe('/clients', () => {
 
             let clientId: string;
 
+            it('GET -> HTTP 200', async () => {
+                const kinds = [...Array(10)].map(() => getKind());
+                await Promise.all(kinds.map(kind => server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: `/clients/${clientId}/candidacies`, payload: {
+                        enabled: true,
+                        kind,
+                    },
+                })))
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'GET', url: `/clients/${clientId}/candidacies`,
+                });
+
+                expect(statusCode).toBe(200);
+                expect((result as string[]).sort()).toEqual(kinds.sort() as never);
+            });
+
+            it('GET -> HTTP 404', async () => {
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'GET', url: `/clients/${v4()}/candidacies`,
+                });
+
+                expect(statusCode).toBe(404);
+                expect(result).toEqual(null as never);
+            });
+
             it('POST -> HTTP 204 (enabled: true)', async () => {
                 const enabled = true;
                 const kind = getKind();
@@ -545,7 +573,7 @@ describe('/clients', () => {
                     },
                 });
                 const end = Date.now();
-                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, user.id);
 
                 expect(statusCode).toBe(204);
                 expect(result).toBe(null as never);
@@ -570,7 +598,7 @@ describe('/clients', () => {
                         kind,
                     },
                 });
-                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, user.id);
 
                 expect(statusCode).toBe(204);
                 expect(score).toBe(null as never);
@@ -587,7 +615,7 @@ describe('/clients', () => {
                     },
                 });
                 const end = Date.now();
-                const score = await redis.zscore(`data:candidacies:${kind}`, clientId);
+                const score = await redis.zscore(`data:candidacies:${kind}`, user.id);
 
                 expect(statusCode).toBe(204);
                 expect(result).toBe(null as never);

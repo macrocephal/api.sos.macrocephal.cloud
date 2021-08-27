@@ -249,6 +249,46 @@ export const clients: Container.Visitor = container =>
         },
         // Client's candidacies
         {
+            method: 'GET',
+            path: '/clients/{id}/candidacies',
+            options: {
+                tags: ['api'],
+                description: `Get a user's client`,
+                response: {
+                    status: {
+                        200: Joi.array().items(KIND.kind as StringSchema).required(),
+                        404: Joi.valid().required(),
+                    },
+                },
+                validate: {
+                    params: Joi.object({
+                        ...ID,
+                    }),
+                },
+            },
+            async handler(request, h) {
+                const [redis, clientService] = await container.inject(REDIS_TOKEN, ClientService);
+                const { userId } = (await clientService.search(request.params.id)) ?? {};
+
+                if (userId) {
+                    const kinds: string[] = []
+                    const promises = (await redis.keys('data:candidacies:*')).map(key => redis
+                        .zscore(key, userId).then(isMember => [key, isMember] as const));
+
+                    for (const [key, isMember] of await Promise.all(promises)) {
+                        isMember && kinds.push(key.split('data:candidacies:')?.[1]!);
+                    }
+                    console.log({ kinds });
+
+
+                    return h.response(kinds).code(200)
+                } else {
+
+                    return h.response().code(404);
+                }
+            },
+        },
+        {
             method: 'POST',
             path: '/clients/{id}/candidacies',
             options: {
