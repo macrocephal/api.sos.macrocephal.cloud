@@ -50,44 +50,39 @@ export const dispatches: Container.Visitor = container =>
                     id: v4(),
                 } as never) ?? {};
 
-                try {
-                    if (dispatch) {
-                        const { id: clientId, userId } = await clientService.search($request.clientId);
-                        const unit = dispatch.radius.split(/^\d+(\.\d+)?/)[2]!;
-                        const radius = +dispatch.radius.split(unit)[0]!;
+                if (dispatch) {
+                    const { id: clientId, userId } = await clientService.search($request.clientId);
+                    const unit = dispatch.radius.split(/^\d+(\.\d+)?/)[2]!;
+                    const radius = +dispatch.radius.split(unit)[0]!;
 
-                        await redis.eval(
-                            `-- Of all the clients in the vicinity
-                            redis.call('GEORADIUSBYMEMBER', KEYS[1], ARGV[1], ARGV[2], ARGV[3], 'ASC', 'STOREDIST', 'tmp:match:vicinity-clients');
+                    await redis.eval(
+                        `-- Of all the clients in the vicinity
+                        redis.call('GEORADIUSBYMEMBER', KEYS[1], ARGV[1], ARGV[2], ARGV[3], 'ASC', 'STOREDIST', 'tmp:match:vicinity-clients');
 
-                            -- Map clientIds to userIds set
-                            for _, clientId in ipairs( redis.call('ZRANGEBYSCORE', 'tmp:match:vicinity-clients', '-inf', '+inf') ) do
-                                for _, userId in ipairs( redis.call('SMEMBERS', 'data:client-users:' .. clientId) ) do
-                                    redis.call('ZADD', 'tmp:match:vicinity-users', 0, userId);
-                                end
+                        -- Map clientIds to userIds set
+                        for _, clientId in ipairs( redis.call('ZRANGEBYSCORE', 'tmp:match:vicinity-clients', '-inf', '+inf') ) do
+                            for _, userId in ipairs( redis.call('SMEMBERS', 'data:client-users:' .. clientId) ) do
+                                redis.call('ZADD', 'tmp:match:vicinity-users', 0, userId);
                             end
+                        end
 
-                            -- Intersect users with their candidacies
-                            redis.call('ZINTERSTORE', KEYS[2], 2, KEYS[3], 'tmp:match:vicinity-users', 'WEIGHTS', 0, 1);
+                        -- Intersect users with their candidacies
+                        redis.call('ZINTERSTORE', KEYS[2], 2, KEYS[3], 'tmp:match:vicinity-users', 'WEIGHTS', 0, 1);
 
-                            -- Remove self
-                            redis.call('ZREM', KEYS[2], ARGV[4]);
+                        -- Remove self
+                        redis.call('ZREM', KEYS[2], ARGV[4]);
 
-                            -- Prune
-                            redis.call('ZREMRANGEBYRANK', KEYS[2], ARGV[5], 1000000000);
+                        -- Prune
+                        redis.call('ZREMRANGEBYRANK', KEYS[2], ARGV[5], 1000000000);
 
-                            -- Clean up
-                            redis.call('DEL', 'tmp:match:vicinity-users', 'tmp:match:vicinity-clients');`,
-                            3, 'data:positions', `data:match:${dispatch.id}`, `data:candidacies:${$request.kind}`,
-                            clientId, radius, unit, userId, count);
+                        -- Clean up
+                        redis.call('DEL', 'tmp:match:vicinity-users', 'tmp:match:vicinity-clients');`,
+                        3, 'data:positions', `data:match:${dispatch.id}`, `data:candidacies:${$request.kind}`,
+                        clientId, radius, unit, userId, count);
 
-                        return h.response(dispatch).code(201);
-                    } else {
-                        return h.response().code(404);
-                    }
-                } catch (error) {
-                    console.log(error);
-                    return null;
+                    return h.response(dispatch).code(201);
+                } else {
+                    return h.response().code(404);
                 }
             },
         },
