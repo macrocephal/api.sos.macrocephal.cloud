@@ -62,7 +62,6 @@ describe('/clients', () => {
                 id: Joi.string().uuid({ version: 'uuidv4' }).required(),
                 createdAt: Joi.date().timestamp().min(start).max('now').required(),
             }).validate(result).error).toBe(void 0);
-            console.log({ userId: user.id, clientId: (result as any).id });
             expect(!!+await redis.sismember(`data:user-clients:${user.id}`, (result as any).id)).toBe(true);
         });
 
