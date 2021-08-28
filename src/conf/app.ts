@@ -1,6 +1,5 @@
 import { clients } from './../app/api/clients';
 import { dispatches } from './../app/api/dispatches';
-import { matches } from './../app/api/matches';
 import { requests } from './../app/api/requests';
 import { users } from './../app/api/users';
 import { ClientService } from './../app/service/client.service';
@@ -19,7 +18,7 @@ import { createServerPlugin } from './create-server-plugin';
 export const app = (container = new Container()): Container =>
     container
         .visit(createEnv, createRedis, createServer, createMigrator, createServerPlugin)
-        .visit(dispatches, requests, matches, clients, users)
+        .visit(dispatches, requests, clients, users)
         .register(DispatchService)
         .register(RequestService)
         .register(ClientService)
