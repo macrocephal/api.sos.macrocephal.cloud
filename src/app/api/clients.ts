@@ -46,6 +46,7 @@ export const clients: Container.Visitor = container =>
 
                 if (client) {
                     await redis.sadd(`data:user-clients:${client.userId}`, client.id);
+                    await redis.sadd(`data:client-users:${client.id}`, client.userId);
                     return h.response(client).code(201);
                 } else {
                     return h.response().code(404);
@@ -187,6 +188,7 @@ export const clients: Container.Visitor = container =>
 
                 if (deleted) {
                     await redis.srem(`data:user-clients:${client.userId}`, client.id);
+                    await redis.srem(`data:client-users:${client.id}`, client.userId);
                     return h.response(client).code(204);
                 } else {
                     return h.response().code(404);
