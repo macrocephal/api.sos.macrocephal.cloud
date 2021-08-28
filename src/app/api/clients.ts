@@ -222,29 +222,25 @@ export const clients: Container.Visitor = container =>
                 const { latitude, longitude } = request.payload as { latitude: number, longitude: number };
                 const clientId = request.params.id;
                 const clientKey = clientService.key(clientId);
+                let result: number;
 
                 try {
-                    const result = await redis.eval(
+                    result = +await redis.eval(
                         `if 1 == redis.call('EXISTS', KEYS[1]) then
                             redis.call('GEOADD', KEYS[2], ARGV[1], ARGV[2], ARGV[3]);
                             return 1;
                         end
 
                         return 0`,
-                        2, clientKey, `data:positions`, `${latitude}`, `${longitude}`, clientId);
-
-                    // NOTE: I sometimes got HTTP 404 during tests
-                    logger.fatal('FIXME: Remove this error when bug is understood and fixed!');
-                    logger.fatal('CONTEXT::', { latitude, longitude, clientId, clientKey, result });
-
-                    return h.response().code(+result ? 204 : 404);
+                        2, clientKey, `data:positions`, `${longitude}`, `${latitude}`, clientId);
                 } catch (error) {
                     // NOTE: I sometimes got HTTP 500 during tests
                     logger.fatal('FIXME: Remove this error when bug is understood and fixed!');
                     logger.fatal('CONTEXT::', { latitude, longitude, clientId, clientKey });
-                    logger.fatal(error);
-                    return h.response().code(404);
+                    throw error;
                 }
+
+                return h.response().code(result ? 204 : 404);
             },
         },
         // Client's candidacies

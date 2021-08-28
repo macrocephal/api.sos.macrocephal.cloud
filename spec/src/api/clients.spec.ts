@@ -397,8 +397,8 @@ describe('/clients', () => {
                 const intermediate = await redis.geopos('data:positions', clientId);
 
                 // NOTE: 5-digit precision seems to be the Redis server accuracy
-                expect(intermediate[0]?.[1]).toBeCloseTo(+longitude, 5);
-                expect(intermediate[0]?.[0]).toBeCloseTo(+latitude, 5);
+                expect(intermediate[0]?.[0]).toBeCloseTo(+longitude, 5);
+                expect(intermediate[0]?.[1]).toBeCloseTo(+latitude, 5);
                 expect(result).toBe(null as never);
                 expect(statusCode).toBe(204);
             });
