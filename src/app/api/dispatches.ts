@@ -1,8 +1,11 @@
 import Joi, { StringSchema } from 'joi';
 import { v4 } from 'uuid';
+import { APPLICATION_MATCH_LIMIT } from '../../conf/create-env';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
 import { Dispatch } from '../model/dispatch';
+import { REDIS_TOKEN } from './../../conf/create-redis';
+import { ClientService } from './../service/client.service';
 import { DispatchService } from './../service/dispatch.service';
 import { RequestService } from './../service/request.service';
 import { CREATED, ID, radius, RADIUS, recycled, VALIDATION_ERRORS } from './util.schema';
@@ -37,18 +40,55 @@ export const dispatches: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const [dispatchService, requestService] = await container.inject(DispatchService, RequestService);
+                const [redis, count, dispatchService, requestService, clientService] = await container
+                    .inject(REDIS_TOKEN, APPLICATION_MATCH_LIMIT, DispatchService, RequestService, ClientService);
                 const payload: Dispatch & Partial<Pick<Dispatch, 'requestId'>> = request.payload as any;
+                const $request = await requestService.search(payload.requestId);
                 const dispatch = await dispatchService.create({
                     ...payload,
-                    ...payload.radius ? {} : {
-                        radius: (await requestService.search(payload.requestId)).radius,
-                    },
+                    ...payload.radius ? {} : { radius: $request.radius },
                     id: v4(),
-                } as never);
-                // TODO: upon success, trigger matching, and push notifications
+                } as never) ?? {};
 
-                return dispatch ? h.response(dispatch).code(201) : h.response().code(404);
+                try {
+                    if (dispatch) {
+                        const { id: clientId, userId } = await clientService.search($request.clientId);
+                        const unit = dispatch.radius.split(/^\d+(\.\d+)?/)[2]!;
+                        const radius = +dispatch.radius.split(unit)[0]!;
+
+                        await redis.eval(
+                            `-- Of all the clients in the vicinity
+                            redis.call('GEORADIUSBYMEMBER', KEYS[1], ARGV[1], ARGV[2], ARGV[3], 'ASC', 'STOREDIST', 'tmp:match:vicinity-clients');
+
+                            -- Map clientIds to userIds set
+                            for _, clientId in ipairs( redis.call('ZRANGEBYSCORE', 'tmp:match:vicinity-clients', '-inf', '+inf') ) do
+                                for _, userId in ipairs( redis.call('SMEMBERS', 'data:client-users:' .. clientId) ) do
+                                    redis.call('ZADD', 'tmp:match:vicinity-users', 0, userId);
+                                end
+                            end
+
+                            -- Intersect users with their candidacies
+                            redis.call('ZINTERSTORE', KEYS[2], 2, KEYS[3], 'tmp:match:vicinity-users', 'WEIGHTS', 0, 1);
+
+                            -- Remove self
+                            redis.call('ZREM', KEYS[2], ARGV[4]);
+
+                            -- Prune
+                            redis.call('ZREMRANGEBYRANK', KEYS[2], ARGV[5], 1000000000);
+
+                            -- Clean up
+                            redis.call('DEL', 'tmp:match:vicinity-users', 'tmp:match:vicinity-clients');`,
+                            3, 'data:positions', `data:match:${dispatch.id}`, `data:candidacies:${$request.kind}`,
+                            clientId, radius, unit, userId, count);
+
+                        return h.response(dispatch).code(201);
+                    } else {
+                        return h.response().code(404);
+                    }
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
             },
         },
         // NOTE: need not to PUT dispatches
