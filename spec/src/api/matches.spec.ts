@@ -4,8 +4,10 @@ import faker from 'faker';
 import * as GeoDistance from 'geo-distance';
 import { Redis } from 'ioredis';
 import Joi from 'joi';
+import { v4 } from 'uuid';
 import { APPLICATION_MATCH_LIMIT } from '../../../src/conf/create-env';
 import { Client } from './../../../src/app/model/client';
+import { Dispatch } from './../../../src/app/model/dispatch';
 import { Request } from './../../../src/app/model/request';
 import { User } from './../../../src/app/model/user';
 import { app } from './../../../src/conf/app';
@@ -134,5 +136,47 @@ describe('/dispatches/{id}/matches', () => {
 
         expect(statusCode).toBe(201);
         expect(matches.sort()).toEqual(expected.sort());
+    });
+
+    it('GET -> HTTP 200', async () => {
+        const count = [...Array(clients.length)].map((_, i) => i)
+            // the client indexes we expect
+            .filter(i => i === requesterIndex || 0 === i % 6)
+            .map(i => clients[i]?.userId!)
+            .filter((userId, index, userIds) =>
+                // we dedupe userIds
+                index === userIds.indexOf(userId) &&
+                // but also remove requester userId
+                userId !== clients[requesterIndex]?.userId
+            ).length;
+        const { id: dispatchId } = (await server.inject({
+            headers: { contentType: 'application/json' },
+            method: 'POST', url: '/dispatches', payload: {
+                requestId: request.id,
+            },
+        })).result as any as Dispatch;
+        const { result, statusCode } = await server.inject({
+            method: 'GET', url: `/dispatches/${dispatchId}/matches`,
+            headers: { contentType: 'application/json' },
+        });
+
+        expect(statusCode).toBe(200);
+        expect(result).toEqual({ count });
+    });
+
+    it('GET -> HTTP 404', async () => {
+        await server.inject({
+            headers: { contentType: 'application/json' },
+            method: 'POST', url: '/dispatches', payload: {
+                requestId: request.id,
+            },
+        });
+        const { result, statusCode } = await server.inject({
+            method: 'GET', url: `/dispatches/${v4()}/matches`,
+            headers: { contentType: 'application/json' },
+        });
+
+        expect(statusCode).toBe(404);
+        expect(result).toEqual(null as never);
     });
 });
