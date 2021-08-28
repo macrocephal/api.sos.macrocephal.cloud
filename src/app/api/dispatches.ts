@@ -118,4 +118,38 @@ export const dispatches: Container.Visitor = container =>
             },
         },
         // NOTE: need not to DELETE dispatches
+        {
+            method: 'GET',
+            path: '/dispatches/{id}/matches',
+            options: {
+                tags: ['api'],
+                description: `Get a request's dispatch`,
+                response: {
+                    status: {
+                        200: Joi.object({
+                            count: Joi.number().precision(0).required(),
+                        }).id('DispatchOutcome').label('DispatchOutcome')
+                            .description('Number of matches for dispatch which ID is provided.'),
+                        404: Joi.valid().required(),
+                    },
+                },
+                validate: {
+                    params: Joi.object({
+                        ...ID,
+                    }),
+                },
+            },
+            async handler(request, h) {
+                const [redis] = await container.inject(REDIS_TOKEN);
+                const count = +await redis.eval(
+                    `if 1 == redis.call('EXISTS', KEYS[1]) then
+                        return redis.call('ZCARD', KEYS[1]);
+                    end
+
+                    return -1;`,
+                    1, `data:match:${request.params.id}`);
+
+                return 0 > count ? h.response().code(404) : h.response({ count }).code(200);
+            },
+        },
     ]));
