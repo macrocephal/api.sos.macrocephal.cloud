@@ -46,12 +46,23 @@ export class Logger {
     }
 
     #debuggerFactory(level: Parameters<Logger['level']>[0]): Debugger {
-        let path = [...new Error().stack!.matchAll(/\((.*)\.[tj]s(?::\d+){2}\)/g)]
-            .find(([, target], _i, matches) => target !== matches[0]?.[1])
-            ?.[1]
-            ?.replace(/^webpack:\/\/[^\/\\]+[\/\\](.*)$/, '$1');
+        let [, path, position] = [...new Error().stack!.matchAll(/\((.*)\.[tj]s:(\d+:\d+)\)/g)]
+            .find(([, target], _i, matches) => target !== matches[0]?.[1]) ?? [];
+        path = path?.replace(/^webpack:\/\/[^\/\\]+[\/\\](.*)$/, '$1');
         path = path?.startsWith(process.cwd()) ? path.split(process.cwd())?.[1]?.substr(1) : path;
 
-        return debug(`${this.#namespace}:${path}:${level}`);
+        return ((first?: any, ...others: any[]) => {
+            let initial: string[];
+
+            // If first parameter is string, it might be a debugger template string
+            if ('string' === typeof first) {
+                initial = [`[${position}] ${first}`];
+            } else {
+                initial = [`[${position}]`, first];
+            }
+
+            debug(`${this.#namespace}:${path}:${level}`)
+                (...initial as [string, string], ...others);
+        }) as any;
     }
 }
