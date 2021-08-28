@@ -384,8 +384,8 @@ describe('/clients', () => {
 
             let clientId: string;
 
-            it('POST -> HTTP 204', async () => {
-                const longitude = faker.address.longitude(90, -90, 8);
+            fit('POST -> HTTP 204', async () => {
+                const longitude = faker.address.longitude(180, -180, 8);
                 const latitude = faker.address.latitude(85.05112878, -85.05112878, 8);
                 const { result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
@@ -408,7 +408,7 @@ describe('/clients', () => {
                     headers: { contentType: 'application/json' },
                     method: 'POST', url: `/clients/${v4()}/position`, payload: {
                         latitude: faker.address.latitude(85.05112878, -85.05112878, 8),
-                        longitude: faker.address.longitude(90, -90, 8),
+                        longitude: faker.address.longitude(180, -180, 8),
                     },
                 }));
                 expect(result).toBe(null as never);
@@ -420,7 +420,7 @@ describe('/clients', () => {
                 const { headers, result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
                     method: 'POST', url: `/clients/${v4()}/position`, payload: {
-                        longitude: faker.address.longitude(90, -90, 8),
+                        longitude: faker.address.longitude(180, -180, 8),
                         latitude,
                     },
                 }));
@@ -444,7 +444,7 @@ describe('/clients', () => {
                 const { headers, result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
                     method: 'POST', url: `/clients/${v4()}/position`, payload: {
-                        longitude: faker.address.longitude(90, -90, 8),
+                        longitude: faker.address.longitude(180, -180, 8),
                         latitude,
                     },
                 }));
@@ -464,7 +464,7 @@ describe('/clients', () => {
             });
 
             it('POST -> HTTP 422 (out of lower bounds longitude)', async () => {
-                const longitude = -90.00000001;
+                const longitude = -180.00000001;
                 const { headers, result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
                     method: 'POST', url: `/clients/${v4()}/position`, payload: {
@@ -476,7 +476,7 @@ describe('/clients', () => {
                 expect(headers['content-type']).toMatch(/application\/json/);
                 expect(Joi.array().length(1).items(Joi.object({
                     context: Joi.object({
-                        limit: Joi.valid(-90).required(),
+                        limit: Joi.valid(-180).required(),
                         value: Joi.valid(longitude).required(),
                         key: Joi.valid('longitude').required(),
                         label: Joi.valid('longitude').required(),
@@ -488,7 +488,7 @@ describe('/clients', () => {
             });
 
             it('POST -> HTTP 422 (out of upper bounds longitude)', async () => {
-                const longitude = 90.00000001;
+                const longitude = 180.00000001;
                 const { headers, result, statusCode } = (await server.inject({
                     headers: { contentType: 'application/json' },
                     method: 'POST', url: `/clients/${v4()}/position`, payload: {
@@ -500,7 +500,7 @@ describe('/clients', () => {
                 expect(headers['content-type']).toMatch(/application\/json/);
                 expect(Joi.array().length(1).items(Joi.object({
                     context: Joi.object({
-                        limit: Joi.valid(90).required(),
+                        limit: Joi.valid(180).required(),
                         value: Joi.valid(longitude).required(),
                         key: Joi.valid('longitude').required(),
                         label: Joi.valid('longitude').required(),

@@ -210,7 +210,7 @@ export const clients: Container.Visitor = container =>
                 validate: {
                     payload: Joi.object({
                         latitude: Joi.number().min(-85.05112878).max(85.05112878).precision(8).required(),
-                        longitude: Joi.number().min(-90).max(90).precision(8).required(),
+                        longitude: Joi.number().min(-180).max(180).precision(8).required(),
                     }).id('Position').label('Position'),
                     params: Joi.object({
                         ...ID,
