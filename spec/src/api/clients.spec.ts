@@ -384,7 +384,7 @@ describe('/clients', () => {
 
             let clientId: string;
 
-            fit('POST -> HTTP 204', async () => {
+            it('POST -> HTTP 204', async () => {
                 const longitude = faker.address.longitude(180, -180, 8);
                 const latitude = faker.address.latitude(85.05112878, -85.05112878, 8);
                 const { result, statusCode } = (await server.inject({
