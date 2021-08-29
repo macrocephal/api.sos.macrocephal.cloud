@@ -1,14 +1,15 @@
 import { Server } from '@hapi/hapi';
+import faker from 'faker';
 import { Redis } from 'ioredis';
 import Joi, { ValidationErrorItem } from 'joi';
 import { v4 } from 'uuid';
+import { Client } from '../../../src/app/model/client';
 import { User } from './../../../src/app/model/user';
 import { UserService } from './../../../src/app/service/user.service';
 import { app } from './../../../src/conf/app';
 import { APPLICATION_RECYCLE_TIMEOUT } from './../../../src/conf/create-env';
 import { REDIS_TOKEN } from './../../../src/conf/create-redis';
 import { SERVER_TOKEN } from './../../../src/conf/create-server';
-import faker from 'faker';
 
 describe('/users', () => {
     beforeEach(async () => {
@@ -308,6 +309,74 @@ describe('/users', () => {
 
             expect(result).toBe(null as never);
             expect(statusCode).toBe(404);
+        });
+
+        describe('/clients', () => {
+            it('GET -> HTTP 200 (with 1+ clients)', async () => {
+                // SETUP - start
+                const { id: userId } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: '/users', payload: {
+                        email: faker.internet.email(),
+                    },
+                })).result as any as User;
+                const clientIds = await Promise.all([...Array(10)].map(() => server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: '/clients', payload: {
+                        userAgent: faker.internet.userAgent(),
+                        userId,
+                    },
+                }))).then((responses => responses.map(({ result }) => (result as any).id)));
+                // SETUP - end
+                const { headers, result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'GET', url: `/users/${userId}/clients`,
+                });
+                const clients: Client[] = result as any;
+
+                expect(statusCode).toBe(200);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(clientIds.length).items(
+                    Joi.object({
+                        updatedAt: Joi.date().timestamp(),
+                        recycledAt: Joi.date().timestamp(),
+                        createdAt: Joi.date().timestamp().required(),
+                        id: Joi.string().uuid({ version: 'uuidv4' }).required(),
+                        userAgent: Joi.string().required(),
+                        userId: Joi.valid(userId).required(),
+                    }).id('ClientRecorded').label('ClientRecorded')
+                ).required().validate(result).error).toBe(void 0 as never);
+                expect(clients.map(({ id }) => id).sort()).toEqual(clientIds.sort());
+            });
+
+            it('GET -> HTTP 200 (with 0 clients)', async () => {
+                // SETUP - start
+                const { id: userId } = (await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'POST', url: '/users', payload: {
+                        email: faker.internet.email(),
+                    },
+                })).result as any as User;
+                // SETUP - end
+                const { headers, result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'GET', url: `/users/${userId}/clients`,
+                });
+
+                expect(statusCode).toBe(200);
+                expect(headers['content-type']).toMatch(/application\/json/);
+                expect(Joi.array().length(0).required().validate(result).error).toBe(void 0 as never);
+            });
+
+            it('GET -> HTTP 404', async () => {
+                const { result, statusCode } = await server.inject({
+                    headers: { contentType: 'application/json' },
+                    method: 'GET', url: `/users/${v4()}/clients`,
+                });
+
+                expect(statusCode).toBe(404);
+                expect(result).toBe(null as never);
+            });
         });
     });
 });
