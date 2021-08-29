@@ -1,10 +1,10 @@
 import Joi, { StringSchema } from 'joi';
 import { v4 } from 'uuid';
-import { APPLICATION_MATCH_LIMIT } from '../../conf/create-env';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
 import { Dispatch } from '../model/dispatch';
-import { REDIS_TOKEN } from './../../conf/create-redis';
+import { execMatchOutcome } from '../script/exec-match-outcome';
+import { execMatch } from './../script/exec-match';
 import { ClientService } from './../service/client.service';
 import { DispatchService } from './../service/dispatch.service';
 import { RequestService } from './../service/request.service';
@@ -40,45 +40,22 @@ export const dispatches: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const [redis, count, dispatchService, requestService, clientService] = await container
-                    .inject(REDIS_TOKEN, APPLICATION_MATCH_LIMIT, DispatchService, RequestService, ClientService);
+                const [dispatchService, requestService] = await container
+                    .inject(DispatchService, RequestService, ClientService);
                 const payload: Dispatch & Partial<Pick<Dispatch, 'requestId'>> = request.payload as any;
-                const $request = await requestService.search(payload.requestId);
+                const { kind: requestKind, radius, clientId } = await requestService.search(payload.requestId);
                 const dispatch = await dispatchService.create({
                     ...payload,
-                    ...payload.radius ? {} : { radius: $request.radius },
+                    ...payload.radius ? {} : { radius },
                     id: v4(),
                 } as never) ?? {};
 
                 if (dispatch) {
-                    const { id: clientId, userId } = await clientService.search($request.clientId);
-                    const unit = dispatch.radius.split(/^\d+(\.\d+)?/)[2]!;
-                    const radius = +dispatch.radius.split(unit)[0]!;
-
-                    await redis.eval(
-                        `-- Of all the clients in the vicinity
-                        redis.call('GEORADIUSBYMEMBER', KEYS[1], ARGV[1], ARGV[2], ARGV[3], 'ASC', 'STOREDIST', 'tmp:match:vicinity-clients');
-
-                        -- Map clientIds to userIds set
-                        for _, clientId in ipairs( redis.call('ZRANGEBYSCORE', 'tmp:match:vicinity-clients', '-inf', '+inf') ) do
-                            for _, userId in ipairs( redis.call('SMEMBERS', 'mapping:client-users:' .. clientId) ) do
-                                redis.call('ZADD', 'tmp:match:vicinity-users', 0, userId);
-                            end
-                        end
-
-                        -- Intersect users with their candidacies
-                        redis.call('ZINTERSTORE', KEYS[2], 2, KEYS[3], 'tmp:match:vicinity-users', 'WEIGHTS', 0, 1);
-
-                        -- Remove self
-                        redis.call('ZREM', KEYS[2], ARGV[4]);
-
-                        -- Prune
-                        redis.call('ZREMRANGEBYRANK', KEYS[2], ARGV[5], 1000000000);
-
-                        -- Clean up
-                        redis.call('DEL', 'tmp:match:vicinity-users', 'tmp:match:vicinity-clients');`,
-                        3, 'data:positions', `data:match:${dispatch.id}`, `data:candidacies:${$request.kind}`,
-                        clientId, radius, unit, userId, count);
+                    await execMatch({
+                        requestKind, container, clientId,
+                        dispatchId: dispatch.id,
+                        radius: dispatch.radius,
+                    });
 
                     return h.response(dispatch).code(201);
                 } else {
@@ -140,14 +117,10 @@ export const dispatches: Container.Visitor = container =>
                 },
             },
             async handler(request, h) {
-                const [redis] = await container.inject(REDIS_TOKEN);
-                const count = +await redis.eval(
-                    `if 1 == redis.call('EXISTS', KEYS[1]) then
-                        return redis.call('ZCARD', KEYS[1]);
-                    end
-
-                    return -1;`,
-                    1, `data:match:${request.params.id}`);
+                const count = await execMatchOutcome({
+                    dispatchId: request.params.id,
+                    container,
+                });
 
                 return 0 > count ? h.response().code(404) : h.response({ count }).code(200);
             },
