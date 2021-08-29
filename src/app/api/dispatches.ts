@@ -61,7 +61,7 @@ export const dispatches: Container.Visitor = container =>
 
                         -- Map clientIds to userIds set
                         for _, clientId in ipairs( redis.call('ZRANGEBYSCORE', 'tmp:match:vicinity-clients', '-inf', '+inf') ) do
-                            for _, userId in ipairs( redis.call('SMEMBERS', 'data:client-users:' .. clientId) ) do
+                            for _, userId in ipairs( redis.call('SMEMBERS', 'mapping:client-users:' .. clientId) ) do
                                 redis.call('ZADD', 'tmp:match:vicinity-users', 0, userId);
                             end
                         end

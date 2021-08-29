@@ -170,7 +170,7 @@ export const users: Container.Visitor = container =>
                 const userId = request.params.id;
 
                 if (await userService.exists(userId)) {
-                    const clientIds = await redis.smembers(`data:user-clients:${userId}`);
+                    const clientIds = await redis.smembers(`mapping:user-clients:${userId}`);
                     const clients = await Promise.all(clientIds.map(clientId => clientService.search(clientId)));
 
                     return h.response(clients).code(200);
