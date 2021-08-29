@@ -93,10 +93,6 @@ export abstract class Service<M extends Model> {
     }
 
     protected isKey(maybeKey: string): maybeKey is Service.Key {
-        if (!maybeKey) {
-            throw new Error('TODO: Remove this error when bug is understood and fixed!');
-        }
-
         return maybeKey.includes(':');
     }
 }
