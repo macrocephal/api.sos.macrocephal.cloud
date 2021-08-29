@@ -2,6 +2,8 @@ import Joi from 'joi';
 import { v4 } from 'uuid';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
+import { REDIS_TOKEN } from './../../conf/create-redis';
+import { ClientService } from './../service/client.service';
 import { UserService } from './../service/user.service';
 import { CREATED, ID, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
 
@@ -137,6 +139,44 @@ export const users: Container.Visitor = container =>
                 const user = await userService.search(request.params.id);
 
                 return user ? h.response(user).code(200) : h.response().code(404);
+            },
+        },
+        {
+            method: 'GET',
+            path: '/users/{id}/clients',
+            options: {
+                tags: ['api', 'users'],
+                description: `Get a user's clients`,
+                response: {
+                    status: {
+                        200: Joi.array().items(
+                            Joi.object({
+                                ...recycled,
+                                userId: ID.id,
+                                userAgent: Joi.string().required(),
+                            }).id('ClientRecorded').label('ClientRecorded')
+                        ).id('UserClients').label('UserClients'),
+                        404: Joi.valid().required(),
+                    },
+                },
+                validate: {
+                    params: Joi.object({
+                        ...ID,
+                    }),
+                },
+            },
+            async handler(request, h) {
+                const [redis, userService, clientService] = await container.inject(REDIS_TOKEN, UserService, ClientService);
+                const userId = request.params.id;
+
+                if (await userService.exists(userId)) {
+                    const clientIds = await redis.smembers(`data:user-clients:${userId}`);
+                    const clients = await Promise.all(clientIds.map(clientId => clientService.search(clientId)));
+
+                    return h.response(clients).code(200);
+                } else {
+                    return h.response().code(404);
+                }
             },
         },
         {
