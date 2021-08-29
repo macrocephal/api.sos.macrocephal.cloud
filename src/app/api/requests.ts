@@ -1,8 +1,8 @@
-import { RequestService } from './../service/request.service';
 import Joi, { StringSchema } from 'joi';
 import { v4 } from 'uuid';
 import { SERVER_TOKEN } from '../../conf/create-server';
 import { Container } from '../../container';
+import { RequestService } from './../service/request.service';
 import { CREATED, ID, id, KIND, kind, radius, RADIUS, recycled, UPDATED, VALIDATION_ERRORS } from './util.schema';
 import { clientIdExists } from './util.validator';
 
