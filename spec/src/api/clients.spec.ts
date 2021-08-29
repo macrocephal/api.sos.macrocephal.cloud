@@ -63,6 +63,7 @@ describe('/clients', () => {
                 createdAt: Joi.date().timestamp().min(start).max('now').required(),
             }).validate(result).error).toBe(void 0);
             expect(!!+await redis.sismember(`data:user-clients:${user.id}`, (result as any).id)).toBe(true);
+            expect(!!+await redis.sismember(`data:client-users:${(result as any).id}`, user.id)).toBe(true);
         });
 
         it('POST -> HTTP 422 (empty userAgent)', async () => {
@@ -359,6 +360,7 @@ describe('/clients', () => {
             await new Promise(r => setTimeout(r, recycleTimeout * 1000));
             expect(null).toEqual(await clientService.search(id) as never);
             expect(!!+await redis.sismember(`data:user-clients:${user.id}`, id)).toBe(false);
+            expect(!!+await redis.sismember(`data:client-users:${id}`, user.id)).toBe(false);
         });
 
         it('DELETE -> HTTP 404', async () => {
