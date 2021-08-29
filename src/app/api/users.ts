@@ -80,7 +80,7 @@ export const users: Container.Visitor = container =>
             path: '/users/{id}',
             options: {
                 tags: ['api', 'users'],
-                description: 'Update a user',
+                description: 'Partially update a user',
                 response: {
                     status: {
                         205: Joi.object({

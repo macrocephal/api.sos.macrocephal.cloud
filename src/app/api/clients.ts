@@ -251,7 +251,7 @@ export const clients: Container.Visitor = container =>
             path: '/clients/{id}/candidacies',
             options: {
                 tags: ['api', 'clients'],
-                description: `Get a user's client`,
+                description: `Get donator's enabled kinds`,
                 response: {
                     status: {
                         200: Joi.array().items(KIND.kind as StringSchema).required(),
@@ -291,7 +291,7 @@ export const clients: Container.Visitor = container =>
             path: '/clients/{id}/candidacies',
             options: {
                 tags: ['api', 'clients'],
-                description: 'Enable or disable requesters\'s kind',
+                description: `Enable or disable donator's kind`,
                 response: {
                     status: {
                         204: Joi.valid().required(),

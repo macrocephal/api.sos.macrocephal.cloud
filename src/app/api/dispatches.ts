@@ -123,7 +123,7 @@ export const dispatches: Container.Visitor = container =>
             path: '/dispatches/{id}/matches',
             options: {
                 tags: ['api', 'dispatches'],
-                description: `Get a request's dispatch`,
+                description: `Get a request's dispatch matches/outcome`,
                 response: {
                     status: {
                         200: Joi.object({
