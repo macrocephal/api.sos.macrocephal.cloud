@@ -17,7 +17,6 @@ export const createServerPlugin: Container.Visitor = container => container
                     { name: 'dispatches' },
                     { name: 'requests' },
                     { name: 'clients' },
-                    { name: 'matches' },
                     { name: 'users' },
                 ],
                 documentationPath: '/',

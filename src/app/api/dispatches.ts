@@ -17,7 +17,7 @@ export const dispatches: Container.Visitor = container =>
             method: 'POST',
             path: '/dispatches',
             options: {
-                tags: ['api'],
+                tags: ['api', 'dispatches'],
                 description: `Create a request's dispatch`,
                 response: {
                     status: {
@@ -92,7 +92,7 @@ export const dispatches: Container.Visitor = container =>
             method: 'GET',
             path: '/dispatches/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'dispatches'],
                 description: `Get a request's dispatch`,
                 response: {
                     status: {
@@ -122,7 +122,7 @@ export const dispatches: Container.Visitor = container =>
             method: 'GET',
             path: '/dispatches/{id}/matches',
             options: {
-                tags: ['api'],
+                tags: ['api', 'dispatches'],
                 description: `Get a request's dispatch`,
                 response: {
                     status: {

@@ -15,7 +15,7 @@ export const clients: Container.Visitor = container =>
             method: 'POST',
             path: '/clients',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Create a user's client`,
                 response: {
                     status: {
@@ -57,7 +57,7 @@ export const clients: Container.Visitor = container =>
             method: 'PUT',
             path: '/clients/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Update a user's client`,
                 response: {
                     status: {
@@ -97,7 +97,7 @@ export const clients: Container.Visitor = container =>
             method: 'PATCH',
             path: '/clients/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Partially update a user's client`,
                 response: {
                     status: {
@@ -137,7 +137,7 @@ export const clients: Container.Visitor = container =>
             method: 'GET',
             path: '/clients/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Get a user's client`,
                 response: {
                     status: {
@@ -166,7 +166,7 @@ export const clients: Container.Visitor = container =>
             method: 'DELETE',
             path: '/clients/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Delete a user's client`,
                 response: {
                     status: {
@@ -200,7 +200,7 @@ export const clients: Container.Visitor = container =>
             method: 'POST',
             path: '/clients/{id}/position',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Record a user's client current position`,
                 response: {
                     status: {
@@ -250,7 +250,7 @@ export const clients: Container.Visitor = container =>
             method: 'GET',
             path: '/clients/{id}/candidacies',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: `Get a user's client`,
                 response: {
                     status: {
@@ -290,7 +290,7 @@ export const clients: Container.Visitor = container =>
             method: 'POST',
             path: '/clients/{id}/candidacies',
             options: {
-                tags: ['api'],
+                tags: ['api', 'clients'],
                 description: 'Enable or disable requesters\'s kind',
                 response: {
                     status: {

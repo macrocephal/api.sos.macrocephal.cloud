@@ -11,7 +11,7 @@ export const users: Container.Visitor = container =>
             method: 'POST',
             path: '/users',
             options: {
-                tags: ['api'],
+                tags: ['api', 'users'],
                 description: 'Create a user',
                 response: {
                     status: {
@@ -43,7 +43,7 @@ export const users: Container.Visitor = container =>
             method: 'PUT',
             path: '/users/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'users'],
                 description: 'Update a user',
                 response: {
                     status: {
@@ -79,7 +79,7 @@ export const users: Container.Visitor = container =>
             method: 'PATCH',
             path: '/users/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'users'],
                 description: 'Update a user',
                 response: {
                     status: {
@@ -115,7 +115,7 @@ export const users: Container.Visitor = container =>
             method: 'GET',
             path: '/users/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'users'],
                 description: 'Get a user',
                 response: {
                     status: {
@@ -143,7 +143,7 @@ export const users: Container.Visitor = container =>
             method: 'DELETE',
             path: '/users/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'users'],
                 description: 'Delete a user',
                 response: {
                     status: {

@@ -13,7 +13,7 @@ export const requests: Container.Visitor = container =>
             method: 'POST',
             path: '/requests',
             options: {
-                tags: ['api'],
+                tags: ['api', 'requests'],
                 description: `Create a user's request`,
                 response: {
                     status: {
@@ -51,7 +51,7 @@ export const requests: Container.Visitor = container =>
             method: 'PUT',
             path: '/requests/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'requests'],
                 description: `Update a user's request`,
                 response: {
                     status: {
@@ -93,7 +93,7 @@ export const requests: Container.Visitor = container =>
             method: 'PATCH',
             path: '/requests/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'requests'],
                 description: `Partially update a user's request`,
                 response: {
                     status: {
@@ -135,7 +135,7 @@ export const requests: Container.Visitor = container =>
             method: 'GET',
             path: '/requests/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'requests'],
                 description: `Get a user's request`,
                 response: {
                     status: {
@@ -166,7 +166,7 @@ export const requests: Container.Visitor = container =>
             method: 'DELETE',
             path: '/requests/{id}',
             options: {
-                tags: ['api'],
+                tags: ['api', 'requests'],
                 description: `Delete a user's request`,
                 response: {
                     status: {
