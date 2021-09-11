@@ -5,8 +5,7 @@ node_modules
 
 # local env files
 # -- We surely want this .env file during tests
-.env.local
-.env.*.local
+.env.*
 
 # Log files
 npm-debug.log*
