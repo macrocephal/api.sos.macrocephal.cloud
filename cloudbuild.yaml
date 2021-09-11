@@ -27,6 +27,7 @@ steps:
         echo "DEBUG=$_DEBUG" >> /workspace/.env
 
         cp /workspace/.env /workspace/.env.prod
+        echo "FIREBASE_SERVICE_ACCOUNT_CONTENT=$( get_secret _SOS_FIREBASE_SERVICE_ACCOUNT_CONTENT | base64 -w 0 )" >> /workspace/.env
         echo "REDIS_DB=$( get_secret _SOS_REDIS_DB )" >> /workspace/.env.prod
         sed -i -e :a -e '/$/N; s/\n/[{!}]/; ta' /workspace/.env.prod
   # Build container image with Docker

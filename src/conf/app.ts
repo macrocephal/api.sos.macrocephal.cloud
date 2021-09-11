@@ -1,3 +1,4 @@
+import { createFirebaseApp } from './create-firebase-app';
 import { clients } from './../app/api/clients';
 import { dispatches } from './../app/api/dispatches';
 import { requests } from './../app/api/requests';
@@ -17,7 +18,7 @@ import { createServerPlugin } from './create-server-plugin';
 
 export const app = (container = new Container()): Container =>
     container
-        .visit(createEnv, createRedis, createServer, createMigrator, createServerPlugin)
+        .visit(createEnv, createRedis, createServer, createMigrator, createFirebaseApp, createServerPlugin)
         .visit(dispatches, requests, clients, users)
         .register(DispatchService)
         .register(RequestService)

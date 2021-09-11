@@ -1,5 +1,6 @@
+import { ServiceAccount } from 'firebase-admin';
 import packAge from '../../package.json';
-import { Container } from "../container";
+import { Container } from '../container';
 
 export const SERVER_PORT: Token<number> = Symbol('Server port');
 export const SERVER_HOST: Token<string> = Symbol('Server host');
@@ -21,6 +22,8 @@ export const REDIS_ENABLE_READY_CHECK: Token<boolean> = Symbol('Redis enable rea
 export const REDIS_STRING_NUMBERS: Token<boolean> = Symbol('Redis string numbers');
 export const REDIS_COMMAND_TIMEOUT: Token<number> = Symbol('Redis command timeout');
 
+export const FIREBASE_SERVICE_ACCOUNT: Token<ServiceAccount> = Symbol('Firebase Service Account');
+
 const {
     REDIS_ENABLE_READY_CHECK: REDIS_ENABLE_READY_CHECK_ENV = false,
     REDIS_COMMAND_TIMEOUT: REDIS_COMMAND_TIMEOUT_ENV = 100,
@@ -34,11 +37,13 @@ const {
     RECYCLE_TIMEOUT: RECYCLE_TIMEOUT_ENV = 3 * 24 * 3600,
     MATCH_LIMIT: MATCH_LIMIT_ENV = 10,
 
+    FIREBASE_SERVICE_ACCOUNT_CONTENT = 'IiIK',
     HOST = '0.0.0.0',
     PORT = 3000,
 } = process.env;
 
 export const createEnv = (container: Container) => {
+    container.register(FIREBASE_SERVICE_ACCOUNT, () => JSON.parse(Buffer.from(FIREBASE_SERVICE_ACCOUNT_CONTENT, 'base64').toString()));
     container.register(REDIS_COMMAND_TIMEOUT, () => Number(REDIS_COMMAND_TIMEOUT_ENV) || 100);
     container.register(REDIS_ENABLE_READY_CHECK, () => Boolean(REDIS_ENABLE_READY_CHECK_ENV));
     container.register(REDIS_STRING_NUMBERS, () => Boolean(REDIS_STRING_NUMBERS_ENV));
