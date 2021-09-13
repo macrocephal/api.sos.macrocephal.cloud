@@ -16,14 +16,19 @@ import { createRedis } from './create-redis';
 import { createServer } from './create-server';
 import { createServerPlugin } from './create-server-plugin';
 
-export const app = (container = new Container()): Container =>
-    container
-        .visit(createEnv, createRedis, createServer, createMigrator, createFirebaseApp, createServerPlugin)
+export const app = async (container = new Container()): Promise<Container> => {
+    container.visit(createEnv, createServer, createFirebaseApp);
+    const [appName] = await container.inject(APPLICATION_NAME);
+    container.register(Logger, new Logger(() => appName));
+    await createServerPlugin(container);
+    container.visit(createRedis, createMigrator)
         .visit(dispatches, requests, clients, users)
         .register(DispatchService)
         .register(RequestService)
         .register(ClientService)
         .register(MatchService)
         .register(UserService)
-        .register(Logger, new Logger(() => container.inject(APPLICATION_NAME).then(([ns]) => ns)))
     ;
+
+    return container;
+}
