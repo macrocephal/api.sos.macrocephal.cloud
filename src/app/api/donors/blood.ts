@@ -1,11 +1,13 @@
+import { BloodDonor } from './../../model/blood-donor';
 import Joi from 'joi';
 import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
 import { REDIS_TOKEN } from './../../../conf/create-redis';
 import { SERVER_TOKEN } from './../../../conf/create-server';
 import { FIREBASE_STRATEGY } from './../../../conf/create-server-plugin';
 import { Container } from './../../../container';
+import { Position } from './../../model/position';
 import { Logger } from './../../service/logger';
-import { CREATED, UPDATED, VALIDATION_ERRORS, UNAUTHORIZED_ERROR } from './../util.schema';
+import { CREATED, UNAUTHORIZED_ERROR, UPDATED, VALIDATION_ERRORS } from './../util.schema';
 
 export const bloodDonors: Container.Visitor = container => container
     .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, FIREBASE_APP_TOKEN)
@@ -195,30 +197,3 @@ export const bloodDonors: Container.Visitor = container => container
             },
         ]);
     });
-
-interface BloodDonor {
-    rhesusFactor: RhesusFactor;
-    bloodGroup: BloodGroup;
-    userId: string;
-
-    recycledAt?: number;
-    createdAt?: number;
-    updatedAt?: number;
-}
-
-const enum BloodGroup {
-    A = 'A',
-    B = 'B',
-    AB = 'AB',
-    O = 'O',
-}
-
-const enum RhesusFactor {
-    POSITIVE = '+',
-    NEGATIVE = '-',
-}
-
-interface Position {
-    latitude: number;
-    longitude: number;
-}
