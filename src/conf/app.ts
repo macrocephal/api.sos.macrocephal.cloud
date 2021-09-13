@@ -1,3 +1,4 @@
+import { bloodDonors } from './../app/api/donors/blood';
 import { createFirebaseApp } from './create-firebase-app';
 import { clients } from './../app/api/clients';
 import { dispatches } from './../app/api/dispatches';
@@ -22,7 +23,7 @@ export const app = async (container = new Container()): Promise<Container> => {
     container.register(Logger, new Logger(() => appName));
     await createServerPlugin(container);
     container.visit(createRedis, createMigrator)
-        .visit(dispatches, requests, clients, users)
+        .visit(dispatches, requests, clients, users, bloodDonors)
         .register(DispatchService)
         .register(RequestService)
         .register(ClientService)

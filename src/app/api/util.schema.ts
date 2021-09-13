@@ -61,3 +61,12 @@ export const VALIDATION_ERRORS = Joi.array().items(
         path: Joi.array().items(Joi.string(), Joi.number()).required().label('ErrorPath'),
     }).label('ValidationError'),
 ).required().label('ValidationErrors');
+
+export const UNAUTHORIZED_ERROR = Joi.object({
+    statusCode: Joi.valid(401).required(),
+    error: Joi.valid('Unauthorized').required(),
+    message: Joi.string().pattern(/^Invalid token: /).required(),
+    attributes: Joi.object({
+        error: Joi.string().pattern(/^Invalid token: /).required(),
+    }).required(),
+}).required().label('UnauthorizedAccessError');
