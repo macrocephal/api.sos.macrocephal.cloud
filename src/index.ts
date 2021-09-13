@@ -1,14 +1,14 @@
-import { Server } from '@hapi/hapi';
-import { Redis } from 'ioredis';
 import { Logger } from './app/service/logger';
 import { app } from './conf/app';
 import { MIGRATOR_TOKEN } from './conf/create-migrator';
 import { REDIS_TOKEN } from './conf/create-redis';
 import { SERVER_TOKEN } from './conf/create-server';
 
-(async (logger?: Logger, server?: Server, redis?: Redis, migrator?: () => Promise<void>) => {
+(async () => {
+    const [logger, server, redis, migrator] = await app().then(app =>
+        app.inject(Logger, SERVER_TOKEN, REDIS_TOKEN, MIGRATOR_TOKEN));
+
     try {
-        ([logger, server, redis, migrator] = await app().inject(Logger, SERVER_TOKEN, REDIS_TOKEN, MIGRATOR_TOKEN));
         await migrator();
         await server.start();
         logger.log(`Started ${server.info.uri}`);
