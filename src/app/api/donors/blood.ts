@@ -46,7 +46,7 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const donor = { ...request.payload as object, createdAt: Date.now(), userId } as BloodDonor;
+                    const donor = { ...request.payload as object, createdAt: Date.now(), id: userId } as BloodDonor;
 
                     await Promise.all([
                         // Persist to Firebase
@@ -90,7 +90,7 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const donorRef = donorsCollection.doc(userId as string);
+                    const donorRef = donorsCollection.doc(userId);
                     const donor = (await donorRef.get()).data();
 
                     if (donor) {
@@ -114,7 +114,7 @@ export const bloodDonors: Container.Visitor = container => container
                         ]);
                         logger.debug('Blood donor "{}" updated!', userId, donor);
 
-                        return h.response(donor).code(200);
+                        return h.response(target).code(200);
                     }
 
                     return h.response().code(404);

@@ -1,12 +1,8 @@
+import { Model } from './model';
 import { BloodGroup } from "./blood-group";
 import { RhesusFactor } from "./rhesus-factor";
 
-export interface BloodDonor {
+export interface BloodDonor extends Model {
     rhesusFactor: RhesusFactor;
     bloodGroup: BloodGroup;
-    userId: string;
-
-    recycledAt?: number;
-    createdAt?: number;
-    updatedAt?: number;
 }
