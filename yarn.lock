@@ -461,14 +461,6 @@
     "@hapi/boom" "9.x.x"
     "@hapi/hoek" "9.x.x"
 
-"@hapi/catbox-object@2.x.x":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@hapi/catbox-object/-/catbox-object-2.0.0.tgz#cd5390e011d8388b923744bc746322604b9296b9"
-  integrity sha512-tzTo5q9UVqwqtpNkIz0VNSmJTbaGyD9ZQmw4a91BBWB+YJWYa066KkxOTHGmmWJzjZEhG2CsNYKu34J25pA5aw==
-  dependencies:
-    "@hapi/boom" "9.x.x"
-    "@hapi/hoek" "9.x.x"
-
 "@hapi/catbox@^11.1.1":
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/@hapi/catbox/-/catbox-11.1.1.tgz#d277e2d5023fd69cddb33d05b224ea03065fec0c"
@@ -558,22 +550,6 @@
     "@hapi/bourne" "2.x.x"
     "@hapi/cryptiles" "5.x.x"
     "@hapi/hoek" "9.x.x"
-
-"@hapi/jwt@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@hapi/jwt/-/jwt-2.1.0.tgz#8c6d28ed36667576369470eddda89d70aa48235a"
-  integrity sha512-txyYo6QqC9ZtuVQSeRnfKW1mDZzFEQfwL1UkVFj6i/tdy+pKKbsWQkw+g6Vi/4yio789WwKCNLpM3AgTFESFpQ==
-  dependencies:
-    "@hapi/b64" "5.x.x"
-    "@hapi/boom" "9.x.x"
-    "@hapi/bounce" "2.x.x"
-    "@hapi/bourne" "2.x.x"
-    "@hapi/catbox-object" "2.x.x"
-    "@hapi/cryptiles" "5.x.x"
-    "@hapi/hoek" "9.x.x"
-    "@hapi/wreck" "17.x.x"
-    ecdsa-sig-formatter "1.x.x"
-    joi "^17.2.1"
 
 "@hapi/mimos@^6.0.0":
   version "6.0.0"
@@ -928,14 +904,6 @@
   integrity sha512-I1mWQrEc7oMqGtofT0rwBgRBCBurz0wNzbq8QZsHWR+aXM0bk1j9GA6zwyGIeO53PNl2C1c2kpXlc084xCV+Tg==
   dependencies:
     "@types/hapi__hapi" "*"
-
-"@types/hapi__jwt@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@types/hapi__jwt/-/hapi__jwt-2.0.1.tgz#ee0711c12fec72b5d5b9b1f02a02f5e4a3de85c1"
-  integrity sha512-M3FtQb1Y98I0uQ06OlF7gIJTiEaEmfFF7+KWt1TMUG7E4ktj4KVUkqYZQc8oFEJ4PqgB7V4hhkbYYLPBg9p5XA==
-  dependencies:
-    "@types/hapi__hapi" "*"
-    joi "^17.3.0"
 
 "@types/hapi__mimos@*":
   version "4.1.4"
@@ -1677,7 +1645,7 @@ duplexify@^4.0.0, duplexify@^4.1.1:
     readable-stream "^3.1.1"
     stream-shift "^1.0.0"
 
-ecdsa-sig-formatter@1.0.11, ecdsa-sig-formatter@1.x.x, ecdsa-sig-formatter@^1.0.11:
+ecdsa-sig-formatter@1.0.11, ecdsa-sig-formatter@^1.0.11:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz#ae0f0fa2d85045ef14a817daa3ce9acd0489e5bf"
   integrity sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==
@@ -2382,7 +2350,7 @@ jest-worker@^27.0.2:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
-joi@^17.2.1, joi@^17.3.0, joi@^17.4.2:
+joi@^17.3.0, joi@^17.4.2:
   version "17.4.2"
   resolved "https://registry.yarnpkg.com/joi/-/joi-17.4.2.tgz#02f4eb5cf88e515e614830239379dcbbe28ce7f7"
   integrity sha512-Lm56PP+n0+Z2A2rfRvsfWVDXGEWjXxatPopkQ8qQ5mxCEhwHG+Ettgg5o98FFaxilOxozoa14cFhrE/hOzh/Nw==

@@ -44,7 +44,6 @@
     "@types/debug": "^4.1.7",
     "@types/faker": "^5.5.8",
     "@types/hapi__hapi": "^20.0.9",
-    "@types/hapi__jwt": "^2.0.1",
     "@types/ioredis": "^4.26.7",
     "@types/jasmine": "^3.8.2",
     "@types/uuid": "^8.3.1",
@@ -65,7 +64,6 @@
   "dependencies": {
     "@hapi/hapi": "^20.1.5",
     "@hapi/inert": "^6.0.3",
-    "@hapi/jwt": "^2.1.0",
     "@hapi/vision": "^6.1.0",
     "@types/hapi__inert": "^5.2.3",
     "@types/hapi__vision": "^5.5.3",
