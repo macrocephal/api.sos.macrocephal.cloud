@@ -1,10 +1,10 @@
-import { BloodDonor } from './../../model/blood-donor';
 import Joi from 'joi';
 import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
 import { REDIS_TOKEN } from './../../../conf/create-redis';
 import { SERVER_TOKEN } from './../../../conf/create-server';
 import { FIREBASE_STRATEGY } from './../../../conf/create-server-plugin';
 import { Container } from './../../../container';
+import { BloodDonor } from './../../model/blood-donor';
 import { Position } from './../../model/position';
 import { Logger } from './../../service/logger';
 import { CREATED, UNAUTHORIZED_ERROR, UPDATED, VALIDATION_ERRORS } from './../util.schema';
@@ -93,31 +93,29 @@ export const bloodDonors: Container.Visitor = container => container
                     const donorRef = donorsCollection.doc(userId);
                     const donor = (await donorRef.get()).data();
 
-                    if (donor) {
-                        const target = { ...donor, ...request.payload as object, updatedAt: Date.now() } as BloodDonor;
+                    if (!donor) return h.response().code(404);
 
-                        // Unset Redis faceting
-                        await Promise.all([
-                            redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
-                            donor.rhesusFactor
-                                ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
-                                : Promise.resolve(0),
-                        ]);
-                        await Promise.all([
-                            // Persist to Firebase
-                            donorsCollection.doc(userId).set(target, { merge: false }),
-                            // Organize facetet search into REDIS
-                            redis.sadd(`donors:blood:group:${target.bloodGroup}`, userId),
-                            target.rhesusFactor
-                                ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
-                                : Promise.resolve(0),
-                        ]);
-                        logger.debug('Blood donor "{}" updated!', userId, donor);
+                    const target = { ...donor, ...request.payload as object, updatedAt: Date.now() } as BloodDonor;
 
-                        return h.response(target).code(200);
-                    }
+                    // Unset Redis faceting
+                    await Promise.all([
+                        redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
+                        donor.rhesusFactor
+                            ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
+                            : Promise.resolve(0),
+                    ]);
+                    await Promise.all([
+                        // Persist to Firebase
+                        donorsCollection.doc(userId).set(target, { merge: false }),
+                        // Organize facetet search into REDIS
+                        redis.sadd(`donors:blood:group:${target.bloodGroup}`, userId),
+                        target.rhesusFactor
+                            ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
+                            : Promise.resolve(0),
+                    ]);
+                    logger.debug('Blood donor "{}" updated!', userId, donor);
 
-                    return h.response().code(404);
+                    return h.response(target).code(200);
                 }
             },
             {
@@ -139,23 +137,21 @@ export const bloodDonors: Container.Visitor = container => container
                     const userId = request.auth.credentials.user_id as string;
                     const donor = (await donorsCollection.doc(userId).get()).data();
 
-                    if (donor) {
-                        await Promise.all([
-                            // unpersist from Firebase
-                            donorsCollection.doc(userId).delete(),
-                            // Unset Redis faceting
-                            redis.srem('donors:blood:coordinates', userId),
-                            redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
-                            donor.rhesusFactor
-                                ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
-                                : Promise.resolve(0),
-                        ]);
-                        logger.debug('Blood donor "{}" deleted!', userId);
+                    if (!donor) return h.response().code(404);
 
-                        return h.response().code(204);
-                    }
+                    await Promise.all([
+                        // unpersist from Firebase
+                        donorsCollection.doc(userId).delete(),
+                        // Unset Redis faceting
+                        redis.srem('donors:blood:coordinates', userId),
+                        redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
+                        donor.rhesusFactor
+                            ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
+                            : Promise.resolve(0),
+                    ]);
+                    logger.debug('Blood donor "{}" deleted!', userId);
 
-                    return h.response().code(404);
+                    return h.response().code(204);
                 }
             },
             {
@@ -185,14 +181,12 @@ export const bloodDonors: Container.Visitor = container => container
                     const { longitude, latitude } = request.payload as Position;
                     const donor = (await donorsCollection.doc(userId).get()).data();
 
-                    if (donor) {
-                        await redis.geoadd('donors:blood:coordinates', longitude, latitude, userId);
-                        logger.debug('Blood donor "{}" position updated:', userId, donor);
+                    if (!donor) return h.response().code(404);
 
-                        return h.response().code(204);
-                    }
+                    await redis.geoadd('donors:blood:coordinates', longitude, latitude, userId);
+                    logger.debug('Blood donor "{}" position updated!', userId, request.payload);
 
-                    return h.response().code(404);
+                    return h.response().code(204);
                 }
             },
         ]);
