@@ -18,7 +18,6 @@ export const execBloodRequestDispatch = async ({
     const NEIGHBOURHOOD = `neighbourhood:${dispatchId}`;
 
     const [redis] = await container.inject(REDIS_TOKEN);
-    let preset: [string, number, ...any[]];
     let dispatch: BloodDispatch;
 
     switch (bloodGroup) {
