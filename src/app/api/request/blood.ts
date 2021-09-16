@@ -1,7 +1,6 @@
 import Joi from 'joi';
 import { v4 } from 'uuid';
 import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
-import { REDIS_TOKEN } from '../../../conf/create-redis';
 import { SERVER_TOKEN } from '../../../conf/create-server';
 import { FIREBASE_STRATEGY } from '../../../conf/create-server-plugin';
 import { Container } from '../../../container';
@@ -12,8 +11,8 @@ import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.sche
 import { BloodDispatch } from './../../model/blood-dispatch';
 
 export const bloodRequesters: Container.Visitor = container => container
-    .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, FIREBASE_APP_TOKEN)
-    .then(([logger, redis, server, app]) => {
+    .inject(Logger, SERVER_TOKEN, FIREBASE_APP_TOKEN)
+    .then(([logger, server, app]) => {
         const bloodRequestsCollection = app.firestore().collection('requests:blood')
             .withConverter<BloodRequest>({
                 fromFirestore: snapshot => snapshot.data() as BloodRequest,
