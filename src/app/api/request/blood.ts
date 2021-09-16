@@ -1,4 +1,3 @@
-import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import Joi from 'joi';
 import { v4 } from 'uuid';
 import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
@@ -7,8 +6,10 @@ import { SERVER_TOKEN } from '../../../conf/create-server';
 import { FIREBASE_STRATEGY } from '../../../conf/create-server-plugin';
 import { Container } from '../../../container';
 import { BloodRequest } from '../../model/blood-request';
+import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import { Logger } from '../../service/logger';
 import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.schema';
+import { BloodDispatch } from './../../model/blood-dispatch';
 
 export const bloodRequesters: Container.Visitor = container => container
     .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, FIREBASE_APP_TOKEN)
@@ -16,6 +17,11 @@ export const bloodRequesters: Container.Visitor = container => container
         const bloodRequestsCollection = app.firestore().collection('requests:blood')
             .withConverter<BloodRequest>({
                 fromFirestore: snapshot => snapshot.data() as BloodRequest,
+                toFirestore: model => model,
+            });
+        const bloodDispatchesCollection = app.firestore().collection('dispatches:blood')
+            .withConverter<BloodDispatch>({
+                fromFirestore: snapshot => snapshot.data() as BloodDispatch,
                 toFirestore: model => model,
             });
 
@@ -121,19 +127,20 @@ export const bloodRequesters: Container.Visitor = container => container
                     if (!bloodRequest.activated) return h.response().code(409);
 
                     const { longitude, latitude } = request.payload as any;
-                    const dispatchId = v4();
-                    const outcome = await execBloodRequestDispatch({
+                    const dispatch = await execBloodRequestDispatch({
                         rhesusFactor: bloodRequest.rhesusFactor,
                         bloodGroup: bloodRequest.bloodGroup,
                         requestId: bloodRequest.id,
-                        dispatchId,
+                        dispatchId: v4(),
                         container,
                         longitude,
                         latitude,
                         userId,
                     });
 
-                    logger.debug('Blood Request "{}" dispatched "{}"!', bloodRequest.id, dispatchId);
+                    await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
+
+                    logger.debug('Blood Request "{}" dispatched "{}"!', bloodRequest.id, dispatch.id);
                     return h.response().code(204);
                 },
             },
