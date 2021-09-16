@@ -1,4 +1,4 @@
-import { BloodDispatchOutcomeKey, execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
+import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import Joi from 'joi';
 import { v4 } from 'uuid';
 import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
@@ -13,7 +13,7 @@ import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.sche
 export const bloodRequesters: Container.Visitor = container => container
     .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, FIREBASE_APP_TOKEN)
     .then(([logger, redis, server, app]) => {
-        const bloodRequestsCollection = app.firestore().collection('donors:blood')
+        const bloodRequestsCollection = app.firestore().collection('requests:blood')
             .withConverter<BloodRequest>({
                 fromFirestore: snapshot => snapshot.data() as BloodRequest,
                 toFirestore: model => model,
@@ -132,20 +132,6 @@ export const bloodRequesters: Container.Visitor = container => container
                         latitude,
                         userId,
                     });
-
-                    for (const group of Object.keys(outcome) as BloodDispatchOutcomeKey[]) {
-                        switch (group) {
-                            case 'O:+':
-                                break;
-                            default:
-                                throw new Error('not implemented error');
-                        }
-                    }
-                    // TODO: Blood request update lifecycle
-
-                    // TODO: Execute the dispatch into REDIS
-                    // TODO: Persist matches for donors (BLOOD/conf - arounded distance)
-                    // TODO: Persist matches for requesters
 
                     logger.debug('Blood Request "{}" dispatched "{}"!', bloodRequest.id, dispatchId);
                     return h.response().code(204);
