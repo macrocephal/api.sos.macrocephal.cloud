@@ -6,7 +6,7 @@ export type UserId = string;
 export type Distance = number;
 
 export interface BloodDispatch extends Model {
-    dispatchId: string;
+    requestId: string;
     outcome: {
         [key in BloodGroup]?: {
             [key in RhesusFactor | '*']?: Record<UserId, Distance>;
