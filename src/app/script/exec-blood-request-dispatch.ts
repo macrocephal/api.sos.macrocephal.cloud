@@ -1,3 +1,4 @@
+import { BloodDispatch } from './../model/blood-dispatch';
 import { BloodGroup } from '../model/blood-group';
 import { RhesusFactor } from '../model/rhesus-factor';
 import { REDIS_TOKEN } from './../../conf/create-redis';
@@ -10,7 +11,7 @@ import { Container } from './../../container';
  */
 export const execBloodRequestDispatch = async ({
     rhesusFactor, bloodGroup, longitude, latitude, userId, requestId, dispatchId, container
-}: BloodRequestDispatchProps): Promise<BloodDispatchOutcome> => {
+}: BloodRequestDispatchProps): Promise<BloodDispatch> => {
     const RHESUS_FACTOR = `donors:blood:rhesus:${rhesusFactor}`;
     const BLOOD_GROUP = `donors:blood:group:${bloodGroup}`;
     const BLOOD_COORDINATES = 'donors:blood:coordinates';
@@ -18,6 +19,7 @@ export const execBloodRequestDispatch = async ({
 
     const [redis] = await container.inject(REDIS_TOKEN);
     let preset: [string, number, ...any[]];
+    let dispatch: BloodDispatch;
 
     switch (bloodGroup) {
         case BloodGroup.O:
@@ -52,26 +54,32 @@ export const execBloodRequestDispatch = async ({
                 // TODO: Maybe cap DISPATCH_O !???
             }
 
-            const outcome = await Promise.all([
+            dispatch = await Promise.all([
                 redis.zrange(DISPATCH_O_RHESUS, 0, -1, 'WITHSCORES').then(matchesCollector),
                 redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES').then(matchesCollector),
-            ]).then<BloodDispatchOutcome>(([oRhesusMatches, oMatches]) => ({
-                [`O:${rhesusFactor}`]: oRhesusMatches,
-                O: oMatches,
+            ]).then<BloodDispatch>(([oRhesus, o]) => ({
+                requestId,
+                id: dispatchId,
+                createdAt: Date.now(),
+                outcome: {
+                    O: {
+                        [rhesusFactor]: oRhesus,
+                        '*': o
+                    },
+                },
             }));
-
-            for (const key in outcome) {
-                if (0 === Object.keys((outcome as any)[key]).length) {
-                    delete (outcome as any)[key];
-                }
-            }
-
-            return outcome;
+            break;
         default:
             throw new Error('not implemented error');
     }
 
-    await redis.eval(...preset);
+    for (const key in dispatch.outcome) {
+        if (0 === Object.keys((dispatch.outcome as any)[key]).length) {
+            delete (dispatch.outcome as any)[key];
+        }
+    }
+
+    return dispatch;
 };
 
 export interface BloodRequestDispatchProps {
@@ -84,10 +92,6 @@ export interface BloodRequestDispatchProps {
     latitude: number;
     userId: string;
 }
-
-export type BloodDispatchOutcomeKey = `${BloodGroup}` | `${BloodGroup}:${RhesusFactor}`;
-
-export type BloodDispatchOutcome = { [key in BloodDispatchOutcomeKey]?: Record<string, number> };
 
 function matchesCollector(matches: string[]) {
     return matches.reduce<Record<string, number>>((hay, matchOrDistiance, index) =>
