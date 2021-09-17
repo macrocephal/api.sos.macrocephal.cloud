@@ -10,7 +10,7 @@ import { Logger } from '../../service/logger';
 import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.schema';
 import { BloodDispatch } from './../../model/blood-dispatch';
 
-export const bloodRequesters: Container.Visitor = container => container
+export const bloodRequests: Container.Visitor = container => container
     .inject(Logger, SERVER_TOKEN, FIREBASE_APP_TOKEN)
     .then(([logger, server, app]) => {
         const bloodRequestsCollection = app.firestore().collection('requests:blood')
