@@ -13,7 +13,7 @@ import { SERVER_TOKEN } from './../../../src/conf/create-server';
 
 describe('/clients', () => {
     beforeEach(async () => {
-        ([server, redis, clientService] = await app()
+        ([server, redis, clientService] = await (await app())
             .register(APPLICATION_RECYCLE_TIMEOUT, () => recycleTimeout)
             .inject(SERVER_TOKEN, REDIS_TOKEN, ClientService));
         recycleTimeout = 1 + Math.round(2 * Math.random());

@@ -24,7 +24,7 @@ describe('/dispatches/{id}/matches', () => {
         ] as const;
         const kinds = ['BLOOD', 'KIDNEY', 'LUNG'].sort(Math.random);
 
-        ([redis, server] = await app()
+        ([redis, server] = await (await app())
             .register(APPLICATION_MATCH_LIMIT, () => 30)
             .inject(REDIS_TOKEN, SERVER_TOKEN));
         await new Promise(resolve => setTimeout(resolve, 1));

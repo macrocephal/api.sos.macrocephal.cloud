@@ -14,7 +14,7 @@ import { SERVER_TOKEN } from './../../../src/conf/create-server';
 
 describe('/dispatches', () => {
     beforeEach(async () => {
-        ([server, redis, dispatchService] = await app()
+        ([server, redis, dispatchService] = await (await app())
             .register(APPLICATION_RECYCLE_TIMEOUT, () => recycleTimeout)
             .inject(SERVER_TOKEN, REDIS_TOKEN, DispatchService));
         recycleTimeout = 1 + Math.round(2 * Math.random());
