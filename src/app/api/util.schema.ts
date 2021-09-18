@@ -1,7 +1,10 @@
 import Joi, { DateSchema, SchemaMap } from 'joi';
 
 export const id: SchemaMap = {
-    id: Joi.string().guid({ version: 'uuidv4' }),
+    id: Joi.alternatives(
+        Joi.string().guid({ version: 'uuidv4' }),
+        Joi.string().base64({paddingRequired: true}),
+    ),
 };
 
 export const ID: SchemaMap = {
