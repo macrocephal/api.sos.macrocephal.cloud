@@ -26,7 +26,7 @@ export const FIREBASE_SERVICE_ACCOUNT: Token<ServiceAccount> = Symbol('Firebase 
 
 const {
     REDIS_ENABLE_READY_CHECK: REDIS_ENABLE_READY_CHECK_ENV = false,
-    REDIS_COMMAND_TIMEOUT: REDIS_COMMAND_TIMEOUT_ENV = 100,
+    REDIS_COMMAND_TIMEOUT: REDIS_COMMAND_TIMEOUT_ENV = 1000,
     REDIS_STRING_NUMBERS: REDIS_STRING_NUMBERS_ENV = true,
     REDIS_PASSWORD: REDIS_PASSWORD_ENV = 'password',
     REDIS_HOST: REDIS_HOST_ENV = '0.0.0.0',
@@ -44,7 +44,7 @@ const {
 
 export const createEnv = (container: Container) => {
     container.register(FIREBASE_SERVICE_ACCOUNT, () => JSON.parse(Buffer.from(FIREBASE_SERVICE_ACCOUNT_CONTENT, 'base64').toString()));
-    container.register(REDIS_COMMAND_TIMEOUT, () => Number(REDIS_COMMAND_TIMEOUT_ENV) || 100);
+    container.register(REDIS_COMMAND_TIMEOUT, () => Number(REDIS_COMMAND_TIMEOUT_ENV) || 1000);
     container.register(REDIS_ENABLE_READY_CHECK, () => Boolean(REDIS_ENABLE_READY_CHECK_ENV));
     container.register(REDIS_STRING_NUMBERS, () => Boolean(REDIS_STRING_NUMBERS_ENV));
     container.register(REDIS_PORT, () => Number(REDIS_PORT_ENV) || 6379);
