@@ -86,7 +86,7 @@ export const bloodRequests: Container.Visitor = container => container
                         return h.response(result).code(statusCode);
                     }
 
-                    logger.debug('Blood Request "{}" created!', bloodRequest.id);
+                    logger.debug('Blood Request "%s" created!', bloodRequest.id);
                     return h.response(bloodRequest).code(201);
                 },
             },
@@ -140,7 +140,7 @@ export const bloodRequests: Container.Visitor = container => container
                     await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
                     // TODO: send notifications to matches
 
-                    logger.debug('Blood Request "{}" dispatched "{}"!', bloodRequest.id, dispatch.id);
+                    logger.debug('Blood Request "%s" dispatched "{}"!', bloodRequest.id, dispatch.id);
                     return h.response().code(204);
                 },
             },
