@@ -73,7 +73,7 @@ export const bloodDonors: Container.Visitor = container => container
                         status: {
                             200: Joi.object({
                                 ...UPDATED,
-                                rhesusFactor: Joi.valid('+', '-'),
+                                rhesusFactor: Joi.valid('+', '-', null).required(),
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodDonorUpdated').label('BloodDonorUpdated'),
                             401: UNAUTHORIZED_ERROR,
