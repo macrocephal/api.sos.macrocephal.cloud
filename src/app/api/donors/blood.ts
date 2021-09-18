@@ -30,7 +30,7 @@ export const bloodDonors: Container.Visitor = container => container
                         status: {
                             201: Joi.object({
                                 ...CREATED,
-                                rhesusFactor: Joi.valid('+', '-').optional(),
+                                rhesusFactor: Joi.valid('+', '-'),
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodDonorCreated').label('BloodDonorCreated'),
                             401: UNAUTHORIZED_ERROR,
@@ -63,7 +63,7 @@ export const bloodDonors: Container.Visitor = container => container
                 }
             },
             {
-                method: 'PATCH',
+                method: 'PUT',
                 path: '/donors/blood',
                 options: {
                     auth: FIREBASE_STRATEGY,
@@ -83,8 +83,8 @@ export const bloodDonors: Container.Visitor = container => container
                     },
                     validate: {
                         payload: Joi.object({
-                            rhesusFactor: Joi.valid('+', '-'),
-                            bloodGroup: Joi.valid('A', 'B', 'AB', 'O'),
+                            rhesusFactor: Joi.valid('+', '-', null).required(),
+                            bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                         }).id('BloodDonorUpdateRequest').label('BloodDonorUpdateRequest'),
                     }
                 },
