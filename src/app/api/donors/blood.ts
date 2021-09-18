@@ -30,7 +30,7 @@ export const bloodDonors: Container.Visitor = container => container
                         status: {
                             201: Joi.object({
                                 ...CREATED,
-                                rhesusFactor: Joi.valid('+', '-'),
+                                rhesusFactor: Joi.valid('+', '-').optional(),
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodDonorCreated').label('BloodDonorCreated'),
                             401: UNAUTHORIZED_ERROR,
@@ -57,7 +57,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.sadd(`donors:blood:rhresus:${donor.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "{}" created!', userId, donor);
+                    logger.debug('Blood donor "%s" created!', userId, donor);
 
                     return h.response(donor).code(201);
                 }
@@ -113,7 +113,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "{}" updated!', userId, donor);
+                    logger.debug('Blood donor "%s" updated!', userId, donor);
 
                     return h.response(target).code(200);
                 }
@@ -149,7 +149,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "{}" deleted!', userId);
+                    logger.debug('Blood donor "%s" deleted!', userId);
 
                     return h.response().code(204);
                 }
@@ -184,7 +184,7 @@ export const bloodDonors: Container.Visitor = container => container
                     if (!donor) return h.response().code(404);
 
                     await redis.geoadd('donors:blood:coordinates', longitude, latitude, userId);
-                    logger.debug('Blood donor "{}" position updated!', userId, request.payload);
+                    logger.debug('Blood donor "%s" position updated!', userId, request.payload);
 
                     return h.response().code(204);
                 }
