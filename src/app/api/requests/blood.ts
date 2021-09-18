@@ -8,7 +8,7 @@ import { BloodRequest } from '../../model/blood-request';
 import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import { Logger } from '../../service/logger';
 import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.schema';
-import { BloodDispatch } from './../../model/blood-dispatch';
+import { BloodDispatch } from '../../model/blood-dispatch';
 
 export const bloodRequests: Container.Visitor = container => container
     .inject(Logger, SERVER_TOKEN, FIREBASE_APP_TOKEN)

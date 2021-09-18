@@ -1,4 +1,4 @@
-import { bloodRequests } from './../app/api/request/blood';
+import { bloodRequests } from '../app/api/requests/blood';
 import { bloodDonors } from './../app/api/donors/blood';
 import { createFirebaseApp } from './create-firebase-app';
 import { Logger } from './../app/service/logger';
