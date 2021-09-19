@@ -5,6 +5,6 @@ import { RhesusFactor } from './rhesus-factor';
 export interface BloodRequest extends Model {
     rhesusFactor: RhesusFactor;
     bloodGroup: BloodGroup;
-    activated: boolean;
+    activate: boolean;
     userId: string;
 }
