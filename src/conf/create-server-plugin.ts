@@ -22,12 +22,7 @@ export const createServerPlugin: Container.Visitor = container =>
         {
             plugin: hapiswagger,
             options: {
-                tags: [
-                    // { name: 'dispatches' },
-                    // { name: 'requests' },
-                    // { name: 'clients' },
-                    // { name: 'users' },
-                ],
+                tags: [],
                 documentationPath: '/',
                 jsonPath: `/${appName}.json`,
                 info: {

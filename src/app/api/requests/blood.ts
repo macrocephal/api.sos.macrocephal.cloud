@@ -27,10 +27,10 @@ export const bloodRequests: Container.Visitor = container => container
         server.route([
             {
                 method: 'POST',
-                path: '/requesters/blood',
+                path: '/requests/blood',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'requesters:blood'],
+                    tags: ['api', 'request:blood'],
                     description: 'Request a new blood donation',
                     response: {
                         status: {
@@ -92,10 +92,10 @@ export const bloodRequests: Container.Visitor = container => container
             },
             {
                 method: 'POST',
-                path: '/requesters/blood/{requestId}/dispatch',
+                path: '/requests/blood/{requestId}/dispatch',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'requesters:blood'],
+                    tags: ['api', 'request:blood'],
                     description: 'Dispatch a blood donation request',
                     response: {
                         status: {
