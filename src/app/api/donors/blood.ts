@@ -113,7 +113,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "%s" updated!', userId, donor);
+                    logger.debug('Blood donor "%s" updated!', userId, target);
 
                     return h.response(target).code(200);
                 }
