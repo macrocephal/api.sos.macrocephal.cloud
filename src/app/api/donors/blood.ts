@@ -24,7 +24,7 @@ export const bloodDonors: Container.Visitor = container => container
                 path: '/donors/blood',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'donors:blood'],
+                    tags: ['api', 'donor:blood'],
                     description: 'Register a new blood donor',
                     response: {
                         status: {
@@ -67,7 +67,7 @@ export const bloodDonors: Container.Visitor = container => container
                 path: '/donors/blood',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'donors:blood'],
+                    tags: ['api', 'donor:blood'],
                     description: 'Register a new blood donor',
                     response: {
                         status: {
@@ -123,7 +123,7 @@ export const bloodDonors: Container.Visitor = container => container
                 path: '/donors/blood',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'donors:blood'],
+                    tags: ['api', 'donor:blood'],
                     description: 'Delete blood donor',
                     response: {
                         status: {
@@ -159,7 +159,7 @@ export const bloodDonors: Container.Visitor = container => container
                 path: '/donors/blood/position',
                 options: {
                     auth: FIREBASE_STRATEGY,
-                    tags: ['api', 'donors:blood'],
+                    tags: ['api', 'donor:blood'],
                     description: 'Update blood donor coordinates',
                     response: {
                         status: {

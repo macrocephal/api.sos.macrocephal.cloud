@@ -22,7 +22,10 @@ export const createServerPlugin: Container.Visitor = container =>
         {
             plugin: hapiswagger,
             options: {
-                tags: [],
+                tags: [
+                    { name: 'request:blood' },
+                    { name: 'donor:blood' },
+                ],
                 documentationPath: '/',
                 jsonPath: `/${appName}.json`,
                 info: {
