@@ -1,8 +1,9 @@
-import { BloodDispatch } from './../model/blood-dispatch';
 import { BloodGroup } from '../model/blood-group';
 import { RhesusFactor } from '../model/rhesus-factor';
 import { REDIS_TOKEN } from './../../conf/create-redis';
 import { Container } from './../../container';
+import { BloodDispatch } from './../model/blood-dispatch';
+import { withRedis } from './with-redis';
 
 /**
  *
@@ -31,7 +32,7 @@ export const execBloodRequestDispatch = async ({
             // {DISPATCH} Find all group O<rhesus> in the neighbourhood
             await redis.zinterstore(DISPATCH_O_RHESUS, 3, NEIGHBOURHOOD, BLOOD_GROUP, RHESUS_FACTOR);
             // {DISPATCH} Retain distinct matches between this dispatch and overall request matches
-            await redis.send_command('ZDIFFSTORE', DISPATCH_O_RHESUS, 3, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
+            await withRedis(redis).ZDIFFSTORE(DISPATCH_O_RHESUS, 3, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
             // {DISPATCH} Remove requester, if the latter happens to be a matching donor as well
             await redis.zrem(DISPATCH_O_RHESUS, userId);
 
@@ -45,7 +46,7 @@ export const execBloodRequestDispatch = async ({
                 // {DISPATCH} Find all group O in the neighbourhood
                 await redis.zinterstore(DISPATCH_O, 3, NEIGHBOURHOOD, BLOOD_GROUP, RHESUS_FACTOR);
                 // {DISPATCH} Retain distinct matches between this dispatch and overall request matches
-                await redis.send_command('ZDIFFSTORE', DISPATCH_O, 3, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O);
+                await withRedis(redis).ZDIFFSTORE(DISPATCH_O, 3, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O);
                 // {DISPATCH} Remove requester, if the latter happens to be a matching donor as well
                 await redis.zrem(DISPATCH_O, userId);
                 // {REQUEST} Merge this dispatch matches with request's
