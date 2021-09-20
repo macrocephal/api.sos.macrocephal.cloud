@@ -73,9 +73,11 @@ export const execBloodRequestDispatch = async ({
             throw new Error('not implemented error');
     }
 
-    for (const key in dispatch.outcome) {
-        if (0 === Object.keys((dispatch.outcome as any)[key]).length) {
-            delete (dispatch.outcome as any)[key];
+    for (const bloodGroup in dispatch.outcome) {
+        for (const key in (dispatch.outcome as any)[bloodGroup]) {
+            if (0 === Object.keys((dispatch.outcome as any)[key]).length) {
+                delete (dispatch.outcome as any)[bloodGroup][key];
+            }
         }
     }
 
