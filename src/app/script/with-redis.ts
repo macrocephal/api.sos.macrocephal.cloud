@@ -1,11 +1,11 @@
 import { Redis } from "ioredis";
 
 export const withRedis = (redis: Redis): withRedis.WithRedis => ({
-    async ZDIFFSTORE(destination, keyCount, ...keys) {
-        switch (keyCount) {
+    async ZDIFFSTORE(destination, ...keys) {
+        switch (keys.length) {
             case 0:
             case 1:
-                await redis.zunionstore(destination, keyCount, ...keys);
+                await redis.zunionstore(destination, keys.length, ...keys);
                 return redis.zcard(destination);
             default:
                 await redis.eval(
@@ -23,7 +23,7 @@ export const withRedis = (redis: Redis): withRedis.WithRedis => ({
                     redis.call('DEL', 'tmp');
 
                     return redis.call('ZCARD', KEYS[1]);`, keys.length + 1, destination, ...keys,
-                    keyCount);
+                    keys.length);
                 return 1;
         }
     }
@@ -31,6 +31,6 @@ export const withRedis = (redis: Redis): withRedis.WithRedis => ({
 
 export namespace withRedis {
     export interface WithRedis {
-        ZDIFFSTORE<N extends number>(destination: string, keyCount: N, ...keys: string[] & { length: N }): Promise<number>;
+        ZDIFFSTORE(destination: string, ...keys: string[]): Promise<number>;
     }
 }

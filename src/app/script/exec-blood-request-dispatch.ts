@@ -36,7 +36,7 @@ export const execBloodRequestDispatch = async ({
             await redis.zinterstore(DISPATCH_O_RHESUS, 3, NEIGHBOURHOOD, BLOOD_GROUP, RHESUS_FACTOR);
             // {DISPATCH} Retain distinct matches between this dispatch and overall request matches
             await logger.trace(`${DISPATCH_O_RHESUS} >>>`, await redis.zrange(DISPATCH_O_RHESUS, 0, -1, 'WITHSCORES'));
-            await withRedis(redis).ZDIFFSTORE(DISPATCH_O_RHESUS, 3, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
+            await withRedis(redis).ZDIFFSTORE(DISPATCH_O_RHESUS, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
             // {DISPATCH} Remove requester, if the latter happens to be a matching donor as well
             await redis.zrem(DISPATCH_O_RHESUS, userId);
             await logger.trace(`${DISPATCH_O_RHESUS} >>>`, await redis.zrange(DISPATCH_O_RHESUS, 0, -1, 'WITHSCORES'));
@@ -53,7 +53,7 @@ export const execBloodRequestDispatch = async ({
                 await redis.zinterstore(DISPATCH_O, 3, NEIGHBOURHOOD, BLOOD_GROUP, RHESUS_FACTOR);
                 await logger.trace(`${DISPATCH_O} >>>`, await redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES'));
                 // {DISPATCH} Retain distinct matches between this dispatch and overall request matches
-                await withRedis(redis).ZDIFFSTORE(DISPATCH_O, 3, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O);
+                await withRedis(redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O); // HAHAHA
                 await logger.trace(`${DISPATCH_O} >>>`, await redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES'));
                 // {DISPATCH} Remove requester, if the latter happens to be a matching donor as well
                 await redis.zrem(DISPATCH_O, userId);
