@@ -13,7 +13,7 @@ export const withRedis = (redis: Redis): withRedis.WithRedis => ({
 
                     for i=3,tonumber(ARGV[1]) do
                         for _,member in ipairs( redis.call('ZRANGE', KEYS[i], 0, -1) ) do
-                            if nil == redis.call('ZRANK', 'tmp', member) then
+                            if nil != redis.call('ZRANK', 'tmp', member) then
                                 redis.call('ZREM', 'tmp', member);
                             end
                         end
