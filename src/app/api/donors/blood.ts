@@ -146,7 +146,7 @@ export const bloodDonors: Container.Visitor = container => container
                         // unpersist from Firebase
                         donorsCollection.doc(userId).delete(),
                         // Unset Redis faceting
-                        redis.srem('donors:blood:coordinates', userId),
+                        redis.zrem('donors:blood:coordinates', userId),
                         redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
                         donor.rhesusFactor
                             ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
