@@ -129,22 +129,27 @@ export const bloodRequests: Container.Visitor = container => container
                     if (!bloodRequest.activate) return h.response().code(409);
 
                     const { longitude, latitude } = request.payload as any;
-                    const dispatch = await execBloodRequestDispatch({
-                        rhesusFactor: bloodRequest.rhesusFactor,
-                        bloodGroup: bloodRequest.bloodGroup,
-                        requestId: bloodRequest.id,
-                        dispatchId: v4(),
-                        container,
-                        longitude,
-                        latitude,
-                        userId,
-                    });
+                    try {
+                        const dispatch = await execBloodRequestDispatch({
+                            rhesusFactor: bloodRequest.rhesusFactor,
+                            bloodGroup: bloodRequest.bloodGroup,
+                            requestId: bloodRequest.id,
+                            dispatchId: v4(),
+                            container,
+                            longitude,
+                            latitude,
+                            userId,
+                        });
 
-                    await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
-                    // TODO: send notifications to matches
+                        await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
+                        // TODO: send notifications to matches
 
-                    logger.debug('[%s] Blood Request /%s/ dispatched /%s/"!', userId, bloodRequest.id, dispatch.id);
-                    return h.response().code(204);
+                        logger.debug('[%s] Blood Request /%s/ dispatched /%s/"!', userId, bloodRequest.id, dispatch.id);
+                        return h.response().code(204);
+                    } catch (error) {
+                        logger.error(error);
+                        throw error;
+                    }
                 },
             },
         ]);
