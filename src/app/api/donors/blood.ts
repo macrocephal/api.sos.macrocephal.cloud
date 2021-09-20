@@ -47,6 +47,7 @@ export const bloodDonors: Container.Visitor = container => container
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
                     const donor = { ...request.payload as object, createdAt: Date.now(), id: userId } as BloodDonor;
+                    logger.debug('[%s] POST /donors/blood | donor=', userId, donor);
 
                     await Promise.all([
                         // Persist to Firebase
@@ -57,7 +58,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.sadd(`donors:blood:rhresus:${donor.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "%s" created!', userId, donor);
+                    logger.debug('[%s] Blood donor /%s/ created!', userId, donor.id, donor);
 
                     return h.response(donor).code(201);
                 }
@@ -92,6 +93,7 @@ export const bloodDonors: Container.Visitor = container => container
                     const userId = request.auth.credentials.user_id as string;
                     const donorRef = donorsCollection.doc(userId);
                     const donor = (await donorRef.get()).data();
+                    logger.debug('[%s] PUT /donors/blood | donor=', userId, donor);
 
                     if (!donor) return h.response().code(404);
 
@@ -113,7 +115,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "%s" updated!', userId, target);
+                    logger.debug('[%s] Blood donor /%s/ updated!', userId, donor.id, target);
 
                     return h.response(target).code(200);
                 }
@@ -136,6 +138,7 @@ export const bloodDonors: Container.Visitor = container => container
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
                     const donor = (await donorsCollection.doc(userId).get()).data();
+                    logger.debug('[%s] DELETE /donors/blood | donor=', userId, donor);
 
                     if (!donor) return h.response().code(404);
 
@@ -149,7 +152,7 @@ export const bloodDonors: Container.Visitor = container => container
                             ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
-                    logger.debug('Blood donor "%s" deleted!', userId);
+                    logger.debug('[%s] Blood donor /%s/ deleted!', userId, donor.id);
 
                     return h.response().code(204);
                 }
@@ -180,11 +183,12 @@ export const bloodDonors: Container.Visitor = container => container
                     const userId = request.auth.credentials.user_id as string;
                     const { longitude, latitude } = request.payload as Position;
                     const donor = (await donorsCollection.doc(userId).get()).data();
+                    logger.debug('[%s] PUT /donors/blood/position | position=', userId, request.payload);
 
                     if (!donor) return h.response().code(404);
 
                     await redis.geoadd('donors:blood:coordinates', longitude, latitude, userId);
-                    logger.debug('Blood donor "%s" position updated!', userId, request.payload);
+                    logger.debug('[%s] Blood donor /%s/ position updated!', userId, donor.id, request.payload);
 
                     return h.response().code(204);
                 }

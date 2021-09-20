@@ -4,11 +4,11 @@ import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
 import { SERVER_TOKEN } from '../../../conf/create-server';
 import { FIREBASE_STRATEGY } from '../../../conf/create-server-plugin';
 import { Container } from '../../../container';
+import { BloodDispatch } from '../../model/blood-dispatch';
 import { BloodRequest } from '../../model/blood-request';
 import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import { Logger } from '../../service/logger';
 import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.schema';
-import { BloodDispatch } from '../../model/blood-dispatch';
 
 export const bloodRequests: Container.Visitor = container => container
     .inject(Logger, SERVER_TOKEN, FIREBASE_APP_TOKEN)
@@ -66,6 +66,7 @@ export const bloodRequests: Container.Visitor = container => container
                         id: v4(),
                         userId,
                     } as BloodRequest;
+                    logger.debug('[%s] POST /requests/blood | request=', userId, bloodRequest);
 
                     // Persist to FireStore
                     await bloodRequestsCollection.doc(bloodRequest.id).set(bloodRequest, { merge: false });
@@ -87,7 +88,7 @@ export const bloodRequests: Container.Visitor = container => container
                         return h.response().code(409);
                     }
 
-                    logger.debug('Blood Request "%s" created!', bloodRequest.id);
+                    logger.debug('[%s] Blood Request /%s/ created!', userId, bloodRequest.id);
                     return h.response(bloodRequest).code(201);
                 },
             },
@@ -122,6 +123,7 @@ export const bloodRequests: Container.Visitor = container => container
                         .where('id', '==', requestId)
                         .where('userId', '==', userId)
                         .get()).docs[0]?.data();
+                    logger.debug(`[%s] POST ${request.path} | payload=`, userId, request.payload);
 
                     if (!bloodRequest) return h.response().code(404);
                     if (!bloodRequest.activate) return h.response().code(409);
@@ -141,7 +143,7 @@ export const bloodRequests: Container.Visitor = container => container
                     await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
                     // TODO: send notifications to matches
 
-                    logger.debug('Blood Request "%s" dispatched "%s"!', bloodRequest.id, dispatch.id);
+                    logger.debug('[%s] Blood Request /%s/ dispatched /%s/"!', userId, bloodRequest.id, dispatch.id);
                     return h.response().code(204);
                 },
             },
