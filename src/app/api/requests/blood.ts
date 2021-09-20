@@ -141,7 +141,7 @@ export const bloodRequests: Container.Visitor = container => container
                     await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
                     // TODO: send notifications to matches
 
-                    logger.debug('Blood Request "%s" dispatched "{}"!', bloodRequest.id, dispatch.id);
+                    logger.debug('Blood Request "%s" dispatched "%s"!', bloodRequest.id, dispatch.id);
                     return h.response().code(204);
                 },
             },
