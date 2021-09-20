@@ -37,7 +37,7 @@ export const bloodRequests: Container.Visitor = container => container
                             201: Joi.object({
                                 ...CREATED,
                                 userId: Joi.string().required(),
-                                activate: Joi.valid(true).required(),
+                                active: Joi.valid(true).required(),
                                 rhesusFactor: Joi.valid('+', '-').required(),
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodRequestCreated').label('BloodRequestCreated'),
@@ -60,7 +60,7 @@ export const bloodRequests: Container.Visitor = container => container
                     const userId = request.auth.credentials.user_id as string;
                     const bloodRequest = {
                         createdAt: Date.now(),
-                        activate: true,
+                        active: true,
                         rhesusFactor,
                         bloodGroup,
                         id: v4(),
@@ -126,7 +126,7 @@ export const bloodRequests: Container.Visitor = container => container
                     logger.debug(`[%s] POST ${request.path} | payload=`, userId, request.payload);
 
                     if (!bloodRequest) return h.response().code(404);
-                    if (!bloodRequest.activate) return h.response().code(409);
+                    if (!bloodRequest.active) return h.response().code(409);
 
                     const { longitude, latitude } = request.payload as any;
                     try {
