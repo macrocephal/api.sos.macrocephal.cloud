@@ -82,8 +82,9 @@ export const bloodRequests: Container.Visitor = container => container
 
                     if (400 <= statusCode) {
                         await bloodRequestsCollection.doc(bloodRequest.id).delete();
+                        logger.error(result);
 
-                        return h.response(result).code(statusCode);
+                        return h.response().code(409);
                     }
 
                     logger.debug('Blood Request "%s" created!', bloodRequest.id);
