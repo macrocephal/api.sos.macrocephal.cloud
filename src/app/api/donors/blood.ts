@@ -55,7 +55,7 @@ export const bloodDonors: Container.Visitor = container => container
                         // Organize facetet search into REDIS
                         redis.sadd(`donors:blood:group:${donor.bloodGroup}`, userId),
                         donor.rhesusFactor
-                            ? redis.sadd(`donors:blood:rhresus:${donor.rhesusFactor}`, userId)
+                            ? redis.sadd(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
                     logger.debug('[%s] Blood donor /%s/ created!', userId, donor.id, donor);
@@ -112,7 +112,7 @@ export const bloodDonors: Container.Visitor = container => container
                         // Organize facetet search into REDIS
                         redis.sadd(`donors:blood:group:${target.bloodGroup}`, userId),
                         target.rhesusFactor
-                            ? redis.sadd(`donors:blood:rhresus:${target.rhesusFactor}`, userId)
+                            ? redis.sadd(`donors:blood:rhesus:${target.rhesusFactor}`, userId)
                             : Promise.resolve(0),
                     ]);
                     logger.debug('[%s] Blood donor /%s/ updated!', userId, donor.id, target);
