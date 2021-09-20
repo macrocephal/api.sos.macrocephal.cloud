@@ -11,5 +11,5 @@ export interface BloodDispatch extends Model {
         [key in BloodGroup]?: {
             [key in RhesusFactor | '*']?: Record<UserId, Distance>;
         }
-    }
+    } | null;
 }

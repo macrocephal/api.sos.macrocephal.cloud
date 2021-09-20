@@ -79,6 +79,14 @@ export const execBloodRequestDispatch = async ({
                 delete (dispatch.outcome as any)[bloodGroup][key];
             }
         }
+
+        if (0 === Object.keys((dispatch.outcome as any)[bloodGroup]).length) {
+            delete (dispatch.outcome as any)[bloodGroup];
+        }
+    }
+
+    if (0 === Object.keys(dispatch.outcome!).length) {
+        dispatch.outcome = null;
     }
 
     return dispatch;
