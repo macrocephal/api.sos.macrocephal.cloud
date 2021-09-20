@@ -50,7 +50,7 @@ export const execBloodRequestDispatch = async ({
 
             if (countBefore < 50) {
                 // {DISPATCH} Find all group O in the neighbourhood
-                await redis.zinterstore(DISPATCH_O, 3, NEIGHBOURHOOD, BLOOD_GROUP, RHESUS_FACTOR);
+                await redis.zinterstore(DISPATCH_O, 3, NEIGHBOURHOOD, BLOOD_GROUP);
                 await logger.trace(`${DISPATCH_O} >>>`, await redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES'));
                 // {DISPATCH} Retain distinct matches between this dispatch and overall request matches
                 await withRedis(redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O); // HAHAHA
