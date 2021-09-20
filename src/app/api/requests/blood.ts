@@ -72,7 +72,7 @@ export const bloodRequests: Container.Visitor = container => container
 
                     // Run the first dispatch right after
                     const { statusCode, result } = await server.inject({
-                        url: `/requesters/blood/${bloodRequest.id}/dispatch`,
+                        url: `/requests/blood/${bloodRequest.id}/dispatch`,
                         headers: {
                             authorization: request.headers.authorization!,
                         },
