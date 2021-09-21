@@ -78,6 +78,7 @@ export const execBloodRequestDispatch = async ({
                     },
                 },
             }));
+            await redis.del(DISPATCH_O_RHESUS, DISPATCH_O, NEIGHBOURHOOD);
             break;
         default:
             throw new Error('not implemented error');
