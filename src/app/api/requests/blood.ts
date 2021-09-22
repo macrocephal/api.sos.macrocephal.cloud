@@ -65,6 +65,46 @@ export const bloodRequests: Container.Visitor = container => container
             },
             {
                 method: 'POST',
+                path: '/requests/blood/{requestId}/disable',
+                options: {
+                    auth: FIREBASE_STRATEGY,
+                    tags: ['api', 'request:blood'],
+                    description: 'Disable a blood donation request',
+                    response: {
+                        status: {
+                            204: Joi.valid().required(),
+                            401: UNAUTHORIZED_ERROR,
+                            404: Joi.valid().required(),
+                        },
+                    },
+                    validate: {
+                        params: Joi.object({
+                            requestId: ID.id,
+                        }),
+                    },
+                },
+                async handler(request, h) {
+                    const userId = request.auth.credentials.user_id as string;
+                    const { requestId } = request.params;
+
+                    try {
+                        await bloodRequestService.disable(userId, requestId);
+
+                        return h.response().code(204);
+                    } catch (error: any) {
+                        logger.error(error);
+
+                        switch (error?.name) {
+                            case WithApplication.ERROR_NOT_FOUND:
+                                return h.response().code(404);
+                        }
+
+                        throw error;
+                    }
+                },
+            },
+            {
+                method: 'POST',
                 path: '/requests/blood/{requestId}/dispatch',
                 options: {
                     auth: FIREBASE_STRATEGY,

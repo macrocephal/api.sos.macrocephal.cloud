@@ -93,4 +93,15 @@ export class BloodRequestService extends WithApplication {
         this.logger.debug('BloodRequestService.dispatch >>> ', dispatch);
         return dispatch;
     }
+
+    async disable(userId: string, requestId: string): Promise<void> {
+        this.logger.debug(`BloodRequestService.disable <<< [userId=${userId}] [requestId=${requestId}]`);
+        const request = await this.search(userId, requestId);
+
+        if (request.active) {
+            await this.#bloodRequests.doc(request.id).update({ active: false });
+        }
+
+        this.logger.debug(`BloodRequestService.disable >>> [userId=${userId}] [requestId=${requestId}]`);
+    }
 }
