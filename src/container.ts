@@ -107,6 +107,9 @@ export class Container {
 }
 
 export namespace Container {
+    export class WithContainer {
+        protected constructor(protected readonly container: Container) {}
+    }
     export interface Factory<T> {
         (container: Container): T | Promise<T>;
     }
