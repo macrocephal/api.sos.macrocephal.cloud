@@ -28,6 +28,7 @@ export const bloodRequests: Container.Visitor = container => container
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodRequestCreated').label('BloodRequestCreated'),
                             401: UNAUTHORIZED_ERROR,
+                            404: Joi.valid().required(),
                             409: Joi.valid().required(),
                             422: VALIDATION_ERRORS,
                         },
@@ -72,8 +73,9 @@ export const bloodRequests: Container.Visitor = container => container
                     response: {
                         status: {
                             204: Joi.valid().required(),
-                            409: Joi.valid().required(),
                             401: UNAUTHORIZED_ERROR,
+                            404: Joi.valid().required(),
+                            409: Joi.valid().required(),
                         },
                     },
                     validate: {
