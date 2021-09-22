@@ -3,9 +3,19 @@ import { Redis } from 'ioredis';
 import { FIREBASE_APP_TOKEN } from './../conf/create-firebase-app';
 import { REDIS_TOKEN } from './../conf/create-redis';
 import { Container } from './../container';
+import { BloodGroup } from './model/blood-group';
+import { RhesusFactor } from './model/rhesus-factor';
 import { Logger } from './service/logger';
 
 export class WithApplication extends Container.WithContainer {
+    #key = {
+        donors: {
+            blood: {
+                group: (bloodGroup: BloodGroup): string => `donors:blood:group:${bloodGroup}`,
+                rhesus: (rhesusFactor: RhesusFactor): string => `donors:blood:rhesus:${rhesusFactor}`,
+            },
+        }
+    } as const;
     protected readonly firebase!: app.App;
     protected readonly logger!: Logger;
     protected readonly redis!: Redis;
@@ -17,5 +27,9 @@ export class WithApplication extends Container.WithContainer {
             [this.logger, this.redis, this.firebase] = await container
                 .inject(Logger, REDIS_TOKEN, FIREBASE_APP_TOKEN);
         })();
+    }
+
+    get key() {
+        return this.#key;
     }
 }
