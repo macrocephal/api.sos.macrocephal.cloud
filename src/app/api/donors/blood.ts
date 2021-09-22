@@ -111,7 +111,7 @@ export const bloodDonors: Container.Visitor = container => container
                         await bloodDonorService.delete(userId);
 
                         return h.response().code(204);
-                    } catch (error) {
+                    } catch (error: any) {
                         logger.error(error);
 
                         if (WithApplication.ERROR_NOT_FOUND === error.name) {
@@ -151,7 +151,7 @@ export const bloodDonors: Container.Visitor = container => container
                         await bloodDonorService.updatePosition(userId, request.payload as any);
 
                         return h.response().code(204);
-                    } catch (error) {
+                    } catch (error: any) {
                         logger.error(error);
 
                         if (WithApplication.ERROR_NOT_FOUND === error.name) {
