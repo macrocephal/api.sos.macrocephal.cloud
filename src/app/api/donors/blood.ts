@@ -1,23 +1,16 @@
 import Joi from 'joi';
-import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
 import { REDIS_TOKEN } from './../../../conf/create-redis';
 import { SERVER_TOKEN } from './../../../conf/create-server';
 import { FIREBASE_STRATEGY } from './../../../conf/create-server-plugin';
 import { Container } from './../../../container';
-import { BloodDonor } from './../../model/blood-donor';
-import { Position } from './../../model/position';
+import { BloodDonorService } from './../../service/blood-donor.service';
 import { Logger } from './../../service/logger';
+import { WithApplication } from './../../with-application';
 import { CREATED, UNAUTHORIZED_ERROR, UPDATED, VALIDATION_ERRORS } from './../util.schema';
 
 export const bloodDonors: Container.Visitor = container => container
-    .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, FIREBASE_APP_TOKEN)
-    .then(([logger, redis, server, app]) => {
-        const donorsCollection = app.firestore().collection('donors:blood')
-            .withConverter<BloodDonor>({
-                fromFirestore: snapshot => snapshot.data() as BloodDonor,
-                toFirestore: model => model,
-            });
-
+    .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, BloodDonorService)
+    .then(([logger, redis, server, bloodDonorService]) =>
         server.route([
             {
                 method: 'POST',
@@ -46,19 +39,7 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const donor = { ...request.payload as object, createdAt: Date.now(), id: userId } as BloodDonor;
-                    logger.debug('[%s] POST /donors/blood | donor=', userId, donor);
-
-                    await Promise.all([
-                        // Persist to Firebase
-                        donorsCollection.doc(userId).set(donor, { merge: false }),
-                        // Organize facetet search into REDIS
-                        redis.sadd(`donors:blood:group:${donor.bloodGroup}`, userId),
-                        donor.rhesusFactor
-                            ? redis.sadd(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
-                            : Promise.resolve(0),
-                    ]);
-                    logger.debug('[%s] Blood donor /%s/ created!', userId, donor.id, donor);
+                    const donor = await bloodDonorService.create(userId, request.payload as any);
 
                     return h.response(donor).code(201);
                 }
@@ -74,7 +55,7 @@ export const bloodDonors: Container.Visitor = container => container
                         status: {
                             200: Joi.object({
                                 ...UPDATED,
-                                rhesusFactor: Joi.valid('+', '-', null).required(),
+                                rhesusFactor: Joi.valid('+', '-'),
                                 bloodGroup: Joi.valid('A', 'B', 'AB', 'O').required(),
                             }).id('BloodDonorUpdated').label('BloodDonorUpdated'),
                             401: UNAUTHORIZED_ERROR,
@@ -91,33 +72,20 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const donorRef = donorsCollection.doc(userId);
-                    const donor = (await donorRef.get()).data();
-                    logger.debug('[%s] PUT /donors/blood | donor=', userId, donor);
 
-                    if (!donor) return h.response().code(404);
+                    try {
+                        const donor = await bloodDonorService.update(userId, request.payload as any);
 
-                    const target = { ...donor, ...request.payload as object, updatedAt: Date.now() } as BloodDonor;
+                        return h.response(donor).code(200);
+                    } catch (error) {
+                        logger.error(error);
 
-                    // Unset Redis faceting
-                    await Promise.all([
-                        redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
-                        donor.rhesusFactor
-                            ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
-                            : Promise.resolve(0),
-                    ]);
-                    await Promise.all([
-                        // Persist to Firebase
-                        donorsCollection.doc(userId).set(target, { merge: false }),
-                        // Organize facetet search into REDIS
-                        redis.sadd(`donors:blood:group:${target.bloodGroup}`, userId),
-                        target.rhesusFactor
-                            ? redis.sadd(`donors:blood:rhesus:${target.rhesusFactor}`, userId)
-                            : Promise.resolve(0),
-                    ]);
-                    logger.debug('[%s] Blood donor /%s/ updated!', userId, donor.id, target);
+                        if (WithApplication.ERROR_NOT_FOUND === error.name) {
+                            return h.response().code(404);
+                        }
 
-                    return h.response(target).code(200);
+                        throw error;
+                    }
                 }
             },
             {
@@ -137,24 +105,20 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const donor = (await donorsCollection.doc(userId).get()).data();
-                    logger.debug('[%s] DELETE /donors/blood | donor=', userId, donor);
 
-                    if (!donor) return h.response().code(404);
+                    try {
+                        await bloodDonorService.delete(userId);
 
-                    await Promise.all([
-                        // unpersist from Firebase
-                        donorsCollection.doc(userId).delete(),
-                        // Unset Redis faceting
-                        redis.zrem('donors:blood:coordinates', userId),
-                        redis.srem(`donors:blood:group:${donor.bloodGroup}`, userId),
-                        donor.rhesusFactor
-                            ? redis.srem(`donors:blood:rhesus:${donor.rhesusFactor}`, userId)
-                            : Promise.resolve(0),
-                    ]);
-                    logger.debug('[%s] Blood donor /%s/ deleted!', userId, donor.id);
+                        return h.response().code(204);
+                    } catch (error) {
+                        logger.error(error);
 
-                    return h.response().code(204);
+                        if (WithApplication.ERROR_NOT_FOUND === error.name) {
+                            return h.response().code(404);
+                        }
+
+                        throw error;
+                    }
                 }
             },
             {
@@ -181,17 +145,21 @@ export const bloodDonors: Container.Visitor = container => container
                 },
                 async handler(request, h) {
                     const userId = request.auth.credentials.user_id as string;
-                    const { longitude, latitude } = request.payload as Position;
-                    const donor = (await donorsCollection.doc(userId).get()).data();
-                    logger.debug('[%s] PUT /donors/blood/position | position=', userId, request.payload);
 
-                    if (!donor) return h.response().code(404);
+                    try {
+                        await bloodDonorService.updatePosition(userId, request.payload as any);
 
-                    await redis.geoadd('donors:blood:coordinates', longitude, latitude, userId);
-                    logger.debug('[%s] Blood donor /%s/ position updated!', userId, donor.id, request.payload);
+                        return h.response().code(204);
+                    } catch (error) {
+                        logger.error(error);
 
-                    return h.response().code(204);
+                        if (WithApplication.ERROR_NOT_FOUND === error.name) {
+                            return h.response().code(404);
+                        }
+
+                        throw error;
+                    }
                 }
             },
-        ]);
-    });
+        ])
+    );
