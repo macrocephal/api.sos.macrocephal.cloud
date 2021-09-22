@@ -1,10 +1,7 @@
 import { BloodGroup } from './blood-group';
-import { Model } from './model';
 import { RhesusFactor } from './rhesus-factor';
 
-export interface BloodRequest extends Model {
+export interface BloodRequest extends Request {
     rhesusFactor: RhesusFactor;
     bloodGroup: BloodGroup;
-    active: boolean;
-    userId: string;
 }
