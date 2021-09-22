@@ -77,4 +77,14 @@ export class BloodDonorService extends WithApplication {
         ]);
         this.logger.debug('BloodDonorService.delete >>> ', userId);
     }
+
+    async updatePosition(userId: string, payload: { longitude: number; latitude: number }): Promise<void> {
+        this.logger.debug('BloodDonorService.updatePosition <<< ', ...arguments);
+        const donor = (await this.#donors.doc(userId).get()).data();
+
+        if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
+
+        await this.redis.geoadd(this.key.donors.blood.coordinates(), payload.longitude, payload.latitude, userId);
+        this.logger.debug('BloodDonorService.updatePosition >>> ', userId);
+    }
 }

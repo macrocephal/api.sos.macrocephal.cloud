@@ -11,6 +11,7 @@ export class WithApplication extends Container.WithContainer {
     #key = {
         donors: {
             blood: {
+                coordinates: (): string => 'donors:blood:coordinates',
                 group: (bloodGroup: BloodGroup): string => `donors:blood:group:${bloodGroup}`,
                 rhesus: (rhesusFactor: RhesusFactor): string => `donors:blood:rhesus:${rhesusFactor}`,
             },
