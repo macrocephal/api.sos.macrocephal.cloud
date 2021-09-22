@@ -1,5 +1,4 @@
 import Joi from 'joi';
-import { REDIS_TOKEN } from './../../../conf/create-redis';
 import { SERVER_TOKEN } from './../../../conf/create-server';
 import { FIREBASE_STRATEGY } from './../../../conf/create-server-plugin';
 import { Container } from './../../../container';
@@ -9,8 +8,8 @@ import { WithApplication } from './../../with-application';
 import { CREATED, UNAUTHORIZED_ERROR, UPDATED, VALIDATION_ERRORS } from './../util.schema';
 
 export const bloodDonors: Container.Visitor = container => container
-    .inject(Logger, REDIS_TOKEN, SERVER_TOKEN, BloodDonorService)
-    .then(([logger, redis, server, bloodDonorService]) =>
+    .inject(Logger, SERVER_TOKEN, BloodDonorService)
+    .then(([logger, server, bloodDonorService]) =>
         server.route([
             {
                 method: 'POST',
