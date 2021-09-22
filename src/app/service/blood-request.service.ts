@@ -4,12 +4,13 @@ import { RhesusFactor } from '../model/rhesus-factor';
 import { Container } from './../../container';
 import { BloodRequest } from './../model/blood-request';
 import { BloodRequestDispatch } from './../model/blood-request-dispatch';
-import { execBloodRequestDispatch } from './../script/exec-blood-request-dispatch';
 import { WithApplication } from './../with-application';
+import { BloodRequestDispatchUtil } from './blood-request-dispatch.util';
 
 export class BloodRequestService extends WithApplication {
     #bloodRequestDispatches!: FirebaseFirestore.CollectionReference<BloodRequestDispatch>;
     #bloodRequests!: FirebaseFirestore.CollectionReference<BloodRequest>;
+    #bloodRequestDispatchUtil!: BloodRequestDispatchUtil;
 
     constructor(container: Container) {
         super(container);
@@ -24,6 +25,7 @@ export class BloodRequestService extends WithApplication {
                     fromFirestore: snapshot => snapshot.data() as BloodRequest,
                     toFirestore: model => model,
                 });
+            [this.#bloodRequestDispatchUtil] = await container.inject(BloodRequestDispatchUtil);
         })();
     }
 
@@ -76,14 +78,10 @@ export class BloodRequestService extends WithApplication {
         }
 
         // TODO: pull all dispatches for this request, merge them and hydrate Redis
-        const dispatch = await execBloodRequestDispatch({
-            rhesusFactor: request.rhesusFactor,
-            bloodGroup: request.bloodGroup,
+        const dispatch = await this.#bloodRequestDispatchUtil.dispatch({
             longitude: payload.longitude,
             latitude: payload.latitude,
-            container: this.container,
-            requestId: request.id,
-            dispatchId: v4(),
+            request,
             userId,
         });
 
