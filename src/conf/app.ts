@@ -1,10 +1,11 @@
-import { BloodDonorService } from './../app/service/blood-donor.service';
 import { bloodRequests } from '../app/api/requests/blood';
 import { bloodDonors } from './../app/api/donors/blood';
-import { createFirebaseApp } from './create-firebase-app';
+import { BloodDonorService } from './../app/service/blood-donor.service';
+import { BloodRequestService } from './../app/service/blood-request.service';
 import { Logger } from './../app/service/logger';
 import { Container } from './../container';
 import { APPLICATION_NAME, createEnv } from './create-env';
+import { createFirebaseApp } from './create-firebase-app';
 import { createMigrator } from './create-migrator';
 import { createRedis } from './create-redis';
 import { createServer } from './create-server';
@@ -17,8 +18,9 @@ export const app = async (container = new Container()): Promise<Container> => {
     await createServerPlugin(container);
     container.visit(createRedis, createMigrator)
         .visit(bloodDonors, bloodRequests)
+        .register(BloodRequestService)
         .register(BloodDonorService)
-    ;
+        ;
 
     return container;
 }
