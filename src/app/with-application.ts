@@ -8,6 +8,8 @@ import { RhesusFactor } from './model/rhesus-factor';
 import { Logger } from './service/logger';
 
 export class WithApplication extends Container.WithContainer {
+    static readonly ERROR_NOT_FOUND = 'ERROR_NOT_FOUND';
+
     #key = {
         donors: {
             blood: {
@@ -17,6 +19,7 @@ export class WithApplication extends Container.WithContainer {
             },
         }
     } as const;
+
     protected readonly firebase!: app.App;
     protected readonly logger!: Logger;
     protected readonly redis!: Redis;

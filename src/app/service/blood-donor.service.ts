@@ -19,6 +19,20 @@ export class BloodDonorService extends WithApplication {
         })();
     }
 
+    async search(userId: string): Promise<BloodDonor> {
+        const donor = (await this.#donors.doc(userId).get()).data();
+
+        if (!donor) {
+            const error = new Error(`Blood donor not found: ${userId}`);
+
+            error.name = WithApplication.ERROR_NOT_FOUND;
+
+            throw error;
+        }
+
+        return donor;
+    }
+
     async create(userId: string, payload: { bloodGroup: BloodGroup, rhesusFactor?: RhesusFactor }): Promise<BloodDonor> {
         this.logger.debug('BloodDonorService.create <<< ', ...arguments);
         const donor: BloodDonor = { ...payload, createdAt: Date.now(), id: userId };
@@ -36,9 +50,7 @@ export class BloodDonorService extends WithApplication {
 
     async update(userId: string, payload: { bloodGroup: BloodGroup, rhesusFactor?: RhesusFactor }): Promise<BloodDonor> {
         this.logger.debug('BloodDonorService.update <<< ', ...arguments);
-        const donor = (await this.#donors.doc(userId).get()).data();
-
-        if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
+        const donor = await this.search(userId);
 
         let rem: Pipeline | undefined = undefined;
         let add: Pipeline | undefined = undefined;
@@ -66,9 +78,7 @@ export class BloodDonorService extends WithApplication {
 
     async delete(userId: string): Promise<void> {
         this.logger.debug('BloodDonorService.delete <<< ', ...arguments);
-        const donor = (await this.#donors.doc(userId).get()).data();
-
-        if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
+        const donor = await this.search(userId);
 
         await Promise.all([
             this.#donors.doc(userId).delete(),
@@ -82,9 +92,7 @@ export class BloodDonorService extends WithApplication {
 
     async updatePosition(userId: string, payload: { longitude: number; latitude: number }): Promise<void> {
         this.logger.debug('BloodDonorService.updatePosition <<< ', ...arguments);
-        const donor = (await this.#donors.doc(userId).get()).data();
-
-        if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
+        await this.search(userId);
 
         await this.redis.geoadd(this.key.donors.blood.coordinates(), payload.longitude, payload.latitude, userId);
         this.logger.debug('BloodDonorService.updatePosition >>> ', userId);
