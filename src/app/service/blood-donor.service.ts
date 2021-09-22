@@ -62,4 +62,19 @@ export class BloodDonorService extends WithApplication {
         this.logger.debug('BloodDonorService.update >>> ', donor);
         return donor;
     }
+
+    async delete(userId: string): Promise<void> {
+        this.logger.debug('BloodDonorService.delete <<< ', ...arguments);
+        const donor = (await this.#donors.doc(userId).get()).data();
+
+        if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
+
+        await Promise.all([
+            this.#donors.doc(userId).delete(),
+            this.redis.pipeline()
+                .srem(this.key.donors.blood.group(donor.bloodGroup), userId)
+                .srem(this.key.donors.blood.rhesus(donor.rhesusFactor!), userId),
+        ]);
+        this.logger.debug('BloodDonorService.delete >>> ', userId);
+    }
 }
