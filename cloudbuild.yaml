@@ -19,24 +19,16 @@ steps:
           echo "$secret"
         }
 
+        echo "FIREBASE_SERVICE_ACCOUNT_CONTENT=$( get_secret _SOS_FIREBASE_SERVICE_ACCOUNT_CONTENT )" >> /workspace/.env
         echo "REDIS_PASSWORD=$( get_secret _SOS_REDIS_PASSWORD )" >> /workspace/.env
         echo "REDIS_PORT=$( get_secret _SOS_REDIS_PORT )" >> /workspace/.env
         echo "REDIS_HOST=$( get_secret _SOS_REDIS_HOST )" >> /workspace/.env
 
         echo "REDIS_COMMAND_TIMEOUT=$_REDIS_COMMAND_TIMEOUT" >> /workspace/.env
-        echo "REDIS_DB=$_TEST_REDIS_DB" >> /workspace/.env
         echo "DEBUG=$_DEBUG" >> /workspace/.env
 
-
-
-        echo "FIREBASE_SERVICE_ACCOUNT_CONTENT=$( get_secret _SOS_FIREBASE_SERVICE_ACCOUNT_CONTENT )" >> /workspace/.env.prod
-        echo "REDIS_PASSWORD=$( get_secret _SOS_REDIS_PASSWORD )" >> /workspace/.env.prod
-        echo "REDIS_PORT=$( get_secret _SOS_REDIS_PORT )" >> /workspace/.env.prod
-        echo "REDIS_HOST=$( get_secret _SOS_REDIS_HOST )" >> /workspace/.env.prod
-
-        echo "REDIS_COMMAND_TIMEOUT=$_REDIS_COMMAND_TIMEOUT" >> /workspace/.env.prod
-        echo "REDIS_DB=$( get_secret _SOS_REDIS_DB )" >> /workspace/.env.prod
-        echo "DEBUG=$_DEBUG" >> /workspace/.env.prod
+        cp /workspace/.env /workspace/.env.prod
+        echo "REDIS_KEY_PREFIX=$_REDIS_KEY_PREFIX" >> /workspace/.env.prod
         sed -i -e :a -e '/$/N; s/\n/[{!}]/; ta' /workspace/.env.prod
   # Build container image with Docker
   - name: gcr.io/cloud-builders/docker
