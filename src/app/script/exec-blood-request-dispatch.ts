@@ -33,7 +33,7 @@ export const execBloodRequestDispatch = async ({
             await withRedis(redis).ZDIFFSTORE(DISPATCH_O_RHESUS, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
             await redis.zrem(DISPATCH_O_RHESUS, userId);
             // TODO: Maybe cap DISPATCH_O_RHESUS !???
-            await redis.send_command('ZUNIONSTORE', REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
+            await redis.zunionstore(REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
 
             const countBefore = await Promise.all([redis.zcard(REQUEST_O_RHESUS), redis.zcard(REQUEST_O)]).then(([a, b]) => +a + b);
 
@@ -41,7 +41,7 @@ export const execBloodRequestDispatch = async ({
                 await redis.zinterstore(DISPATCH_O, 2, NEIGHBOURHOOD, BLOOD_GROUP);
                 await withRedis(redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O); // HAHAHA
                 await redis.zrem(DISPATCH_O, userId);
-                await redis.send_command('ZUNIONSTORE', REQUEST_O, 2, REQUEST_O, DISPATCH_O);
+                await redis.zunionstore(REQUEST_O, 2, REQUEST_O, DISPATCH_O);
             }
 
             dispatch = await Promise.all([
