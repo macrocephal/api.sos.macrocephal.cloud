@@ -36,7 +36,7 @@ export class BloodDonorService extends WithApplication {
 
     async update(userId: string, payload: { bloodGroup: BloodGroup, rhesusFactor?: RhesusFactor }): Promise<BloodDonor> {
         this.logger.debug('BloodDonorService.update <<< ', ...arguments);
-        let donor = (await this.#donors.doc(userId).get()).data();
+        const donor = (await this.#donors.doc(userId).get()).data();
 
         if (!donor) throw new Error('BLOOD_DONOR_NOT_FOUND');
 
@@ -55,11 +55,12 @@ export class BloodDonorService extends WithApplication {
             add = (add ?? this.redis.pipeline()).sadd(rhesusFactorKey, userId);
         }
 
-        donor = { ...donor, ...payload };
-        await rem;
-        await Promise.all([this.#donors.doc(donor.id).set(donor, { merge: true }), add]);
+        const target = { ...donor, ...payload };
 
-        this.logger.debug('BloodDonorService.update >>> ', donor);
+        await rem;
+        await Promise.all([this.#donors.doc(target.id).set(target, { merge: true }), add]);
+
+        this.logger.debug('BloodDonorService.update >>> ', target);
         return donor;
     }
 
