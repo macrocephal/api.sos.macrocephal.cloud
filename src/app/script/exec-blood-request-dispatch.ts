@@ -1,8 +1,8 @@
 import { BloodGroup } from '../model/blood-group';
+import { BloodRequestDispatch } from '../model/blood-request-dispatch';
 import { RhesusFactor } from '../model/rhesus-factor';
 import { REDIS_TOKEN } from './../../conf/create-redis';
 import { Container } from './../../container';
-import { BloodDispatch } from './../model/blood-dispatch';
 import { withRedis } from './with-redis';
 
 /**
@@ -12,14 +12,14 @@ import { withRedis } from './with-redis';
  */
 export const execBloodRequestDispatch = async ({
     rhesusFactor, bloodGroup, longitude, latitude, userId, requestId, dispatchId, container
-}: BloodRequestDispatchProps): Promise<BloodDispatch> => {
+}: BloodRequestDispatchProps): Promise<BloodRequestDispatch> => {
     const RHESUS_FACTOR = `donors:blood:rhesus:${rhesusFactor}`;
     const BLOOD_GROUP = `donors:blood:group:${bloodGroup}`;
     const BLOOD_COORDINATES = 'donors:blood:coordinates';
     const NEIGHBOURHOOD = `neighbourhood:${dispatchId}`;
 
     const [redis] = await container.inject(REDIS_TOKEN);
-    let dispatch: BloodDispatch;
+    let dispatch: BloodRequestDispatch;
 
     switch (bloodGroup) {
         case BloodGroup.O:
@@ -47,7 +47,7 @@ export const execBloodRequestDispatch = async ({
             dispatch = await Promise.all([
                 redis.zrange(DISPATCH_O_RHESUS, 0, -1, 'WITHSCORES').then(matchesCollector),
                 redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES').then(matchesCollector),
-            ]).then<BloodDispatch>(([oRhesus, o]) => ({
+            ]).then<BloodRequestDispatch>(([oRhesus, o]) => ({
                 requestId,
                 id: dispatchId,
                 createdAt: Date.now(),
@@ -77,7 +77,7 @@ export const execBloodRequestDispatch = async ({
     }
 
     if (0 === Object.keys(dispatch.outcome!).length) {
-        dispatch.outcome = null;
+        delete dispatch.outcome;
     }
 
     return dispatch;

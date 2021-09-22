@@ -3,6 +3,10 @@ import { Model } from './model';
 import { RhesusFactor } from './rhesus-factor';
 
 export interface BloodRequestDispatch extends Model {
-    outcome?: Map<BloodGroup, Map<RhesusFactor | '*', Map<string, number>>>;
+    outcome?: {
+        [bloodGroup in BloodGroup]?: {
+            [rhesusFactor in RhesusFactor | '*']?: Record<string, number>;
+        };
+    };
     requestId: string;
 }
