@@ -72,6 +72,7 @@ export class BloodDonorService extends WithApplication {
         await Promise.all([
             this.#donors.doc(userId).delete(),
             this.redis.pipeline()
+                .zrem(this.key.donors.blood.coordinates(), userId)
                 .srem(this.key.donors.blood.group(donor.bloodGroup), userId)
                 .srem(this.key.donors.blood.rhesus(donor.rhesusFactor!), userId),
         ]);
