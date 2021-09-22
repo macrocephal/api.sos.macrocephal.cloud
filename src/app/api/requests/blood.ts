@@ -1,29 +1,15 @@
 import Joi from 'joi';
-import { v4 } from 'uuid';
-import { FIREBASE_APP_TOKEN } from '../../../conf/create-firebase-app';
 import { SERVER_TOKEN } from '../../../conf/create-server';
 import { FIREBASE_STRATEGY } from '../../../conf/create-server-plugin';
 import { Container } from '../../../container';
-import { BloodDispatch } from '../../model/blood-dispatch';
-import { BloodRequest } from '../../model/blood-request';
-import { execBloodRequestDispatch } from '../../script/exec-blood-request-dispatch';
 import { Logger } from '../../service/logger';
 import { CREATED, ID, UNAUTHORIZED_ERROR, VALIDATION_ERRORS } from '../util.schema';
+import { BloodRequestService } from './../../service/blood-request.service';
+import { WithApplication } from './../../with-application';
 
 export const bloodRequests: Container.Visitor = container => container
-    .inject(Logger, SERVER_TOKEN, FIREBASE_APP_TOKEN)
-    .then(([logger, server, app]) => {
-        const bloodRequestsCollection = app.firestore().collection('requests:blood')
-            .withConverter<BloodRequest>({
-                fromFirestore: snapshot => snapshot.data() as BloodRequest,
-                toFirestore: model => model,
-            });
-        const bloodDispatchesCollection = app.firestore().collection('dispatches:blood')
-            .withConverter<BloodDispatch>({
-                fromFirestore: snapshot => snapshot.data() as BloodDispatch,
-                toFirestore: model => model,
-            });
-
+    .inject(Logger, SERVER_TOKEN, BloodRequestService)
+    .then(([logger, server, bloodRequestService]) =>
         server.route([
             {
                 method: 'POST',
@@ -56,40 +42,24 @@ export const bloodRequests: Container.Visitor = container => container
                     },
                 },
                 async handler(request, h) {
-                    const { rhesusFactor, bloodGroup, longitude, latitude } = request.payload as any;
                     const userId = request.auth.credentials.user_id as string;
-                    const bloodRequest = {
-                        createdAt: Date.now(),
-                        active: true,
-                        rhesusFactor,
-                        bloodGroup,
-                        id: v4(),
-                        userId,
-                    } as BloodRequest;
-                    logger.debug('[%s] POST /requests/blood | request=', userId, bloodRequest);
 
-                    // Persist to FireStore
-                    await bloodRequestsCollection.doc(bloodRequest.id).set(bloodRequest, { merge: false });
+                    try {
+                        const bloodRequest = await bloodRequestService.create(userId, request.payload as any);
 
-                    // Run the first dispatch right after
-                    const { statusCode, result } = await server.inject({
-                        url: `/requests/blood/${bloodRequest.id}/dispatch`,
-                        headers: {
-                            authorization: request.headers.authorization!,
-                        },
-                        payload: { longitude, latitude },
-                        method: 'POST',
-                    });
+                        return h.response(bloodRequest).code(201);
+                    } catch (error: any) {
+                        logger.error(error);
 
-                    if (400 <= statusCode) {
-                        await bloodRequestsCollection.doc(bloodRequest.id).delete();
-                        logger.error(result);
+                        switch (error?.name) {
+                            case WithApplication.ERROR_CONFLICT:
+                                return h.response().code(409);
+                            case WithApplication.ERROR_NOT_FOUND:
+                                return h.response().code(404);
+                        }
 
-                        return h.response().code(409);
+                        throw error;
                     }
-
-                    logger.debug('[%s] Blood Request /%s/ created!', userId, bloodRequest.id);
-                    return h.response(bloodRequest).code(201);
                 },
             },
             {
@@ -117,40 +87,26 @@ export const bloodRequests: Container.Visitor = container => container
                     },
                 },
                 async handler(request, h) {
-                    const requestId = request.params.requestId as string;
                     const userId = request.auth.credentials.user_id as string;
-                    const bloodRequest = (await bloodRequestsCollection
-                        .where('id', '==', requestId)
-                        .where('userId', '==', userId)
-                        .get()).docs[0]?.data();
-                    logger.debug(`[%s] POST ${request.path} | payload=`, userId, request.payload);
+                    const { requestId } = request.params;
 
-                    if (!bloodRequest) return h.response().code(404);
-                    if (!bloodRequest.active) return h.response().code(409);
-
-                    const { longitude, latitude } = request.payload as any;
                     try {
-                        const dispatch = await execBloodRequestDispatch({
-                            rhesusFactor: bloodRequest.rhesusFactor,
-                            bloodGroup: bloodRequest.bloodGroup,
-                            requestId: bloodRequest.id,
-                            dispatchId: v4(),
-                            container,
-                            longitude,
-                            latitude,
-                            userId,
-                        });
+                        const dispatch = await bloodRequestService.dispatch(userId, requestId, request.payload as any);
 
-                        await bloodDispatchesCollection.doc(dispatch.id).set(dispatch, { merge: false });
-                        // TODO: send notifications to matches
-
-                        logger.debug('[%s] Blood Request /%s/ dispatched /%s/"!', userId, bloodRequest.id, dispatch.id);
-                        return h.response().code(204);
-                    } catch (error) {
+                        return h.response(dispatch).code(201);
+                    } catch (error: any) {
                         logger.error(error);
+
+                        switch (error?.name) {
+                            case WithApplication.ERROR_CONFLICT:
+                                return h.response().code(409);
+                            case WithApplication.ERROR_NOT_FOUND:
+                                return h.response().code(404);
+                        }
+
                         throw error;
                     }
                 },
             },
-        ]);
-    })
+        ])
+    );
