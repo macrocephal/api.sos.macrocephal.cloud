@@ -1,3 +1,4 @@
+import { BloodDonorService } from './../app/service/blood-donor.service';
 import { bloodRequests } from '../app/api/requests/blood';
 import { bloodDonors } from './../app/api/donors/blood';
 import { createFirebaseApp } from './create-firebase-app';
@@ -16,6 +17,7 @@ export const app = async (container = new Container()): Promise<Container> => {
     await createServerPlugin(container);
     container.visit(createRedis, createMigrator)
         .visit(bloodDonors, bloodRequests)
+        .register(BloodDonorService)
     ;
 
     return container;
