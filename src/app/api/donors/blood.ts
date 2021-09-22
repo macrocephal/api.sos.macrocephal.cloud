@@ -77,11 +77,12 @@ export const bloodDonors: Container.Visitor = container => container
                         const donor = await bloodDonorService.update(userId, request.payload as any);
 
                         return h.response(donor).code(200);
-                    } catch (error) {
+                    } catch (error: any) {
                         logger.error(error);
 
-                        if (WithApplication.ERROR_NOT_FOUND === error.name) {
-                            return h.response().code(404);
+                        switch (error?.name) {
+                            case WithApplication.ERROR_NOT_FOUND:
+                                return h.response().code(404);
                         }
 
                         throw error;
