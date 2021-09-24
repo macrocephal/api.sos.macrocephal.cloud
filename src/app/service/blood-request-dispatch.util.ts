@@ -55,6 +55,7 @@ export class BloodRequestDispatchUtil extends WithApplication {
         await this.redis.zrem(DISPATCH_O_RHESUS, props.userId);
         await this.redis.zunionstore(REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
 
+        // If the O-group recipient is rhesus positive, he may well receive O- blood
         if (RhesusFactor.POSITIVE === props.request.rhesusFactor &&
             this.#maximum > await this.#zcount(REQUEST_O_RHESUS, REQUEST_O)) {
             await this.redis.zinterstore(DISPATCH_O, 2, NEIGHBOURHOOD, GROUP_O);
