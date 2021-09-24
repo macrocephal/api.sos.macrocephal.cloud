@@ -55,7 +55,8 @@ export class BloodRequestDispatchUtil extends WithApplication {
         await this.redis.zrem(DISPATCH_O_RHESUS, props.userId);
         await this.redis.zunionstore(REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
 
-        if (this.#maximum > await Promise.all([
+        if (RhesusFactor.POSITIVE === props.request.rhesusFactor &&
+            this.#maximum > await Promise.all([
             this.redis.zcard(REQUEST_O),
             this.redis.zcard(REQUEST_O_RHESUS),
         ]).then(([a, b]) => +a + b)) {
