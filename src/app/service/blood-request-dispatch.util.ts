@@ -42,7 +42,7 @@ export class BloodRequestDispatchUtil extends WithApplication {
         const dispatchId = v4();
         const NEIGHBOURHOOD = `tmp:neigbourhood:${dispatchId}`;
         const COORDINATES = this.key.donors.blood.coordinates();
-        const GROUP = this.key.donors.blood.group(props.request.bloodGroup);
+        const GROUP_O = this.key.donors.blood.group(props.request.bloodGroup);
         const RHESUS = this.key.donors.blood.rhesus(props.request.rhesusFactor);
         const DISPATCH_O = `tmp:dispatch-matches:blood:${dispatchId}:${props.request.bloodGroup}`;
         const REQUEST_O = `tmp:request-matches:blood:${props.request.id}:${props.request.bloodGroup}`;
@@ -50,7 +50,7 @@ export class BloodRequestDispatchUtil extends WithApplication {
         const REQUEST_O_RHESUS = `tmp:request-matches:blood:${props.request.id}:${props.request.bloodGroup}:${props.request.rhesusFactor}`;
 
         await this.redis.send_command('GEORADIUS', COORDINATES, props.longitude, props.latitude, ...this.#radius, 'ASC', 'STOREDIST', NEIGHBOURHOOD);
-        await this.redis.zinterstore(DISPATCH_O_RHESUS, 3, NEIGHBOURHOOD, GROUP, RHESUS);
+        await this.redis.zinterstore(DISPATCH_O_RHESUS, 3, NEIGHBOURHOOD, GROUP_O, RHESUS);
         await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O_RHESUS, DISPATCH_O_RHESUS, REQUEST_O_RHESUS, REQUEST_O);
         await this.redis.zrem(DISPATCH_O_RHESUS, props.userId);
         await this.redis.zunionstore(REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
@@ -59,7 +59,7 @@ export class BloodRequestDispatchUtil extends WithApplication {
             this.redis.zcard(REQUEST_O),
             this.redis.zcard(REQUEST_O_RHESUS),
         ]).then(([a, b]) => +a + b)) {
-            await this.redis.zinterstore(DISPATCH_O, 2, NEIGHBOURHOOD, GROUP);
+            await this.redis.zinterstore(DISPATCH_O, 2, NEIGHBOURHOOD, GROUP_O);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O);
             await this.redis.zrem(DISPATCH_O, props.userId);
             await this.redis.zunionstore(REQUEST_O, 2, REQUEST_O, DISPATCH_O);
