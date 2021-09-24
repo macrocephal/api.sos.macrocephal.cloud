@@ -65,13 +65,17 @@ export class BloodRequestDispatchUtil extends WithApplication {
             await this.redis.zunionstore(REQUEST_O, 2, REQUEST_O, DISPATCH_O);
         }
 
-        return Promise.all([
+        const dispatch = await Promise.all([
             this.redis.zrange(DISPATCH_O, 0, -1, 'WITHSCORES').then(this.#matchesCollector),
             this.redis.zrange(DISPATCH_O_RHESUS, 0, -1, 'WITHSCORES').then(this.#matchesCollector),
         ]).then<BloodRequestDispatch>(([o, oRhesus]) => this.#dispatchesCollector(
             props.request.id, dispatchId,
             [[props.request.bloodGroup, '*'], o],
             [[props.request.bloodGroup, props.request.rhesusFactor], oRhesus]));
+
+        await this.redis.del(NEIGHBOURHOOD, DISPATCH_O_RHESUS, DISPATCH_O);
+
+        return dispatch;
     }
 
     async #dispatchBloodGroupAB(_props: BloodRequestDispatchUtility.Props): Promise<BloodRequestDispatch> {
