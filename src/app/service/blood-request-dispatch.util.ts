@@ -56,10 +56,7 @@ export class BloodRequestDispatchUtil extends WithApplication {
         await this.redis.zunionstore(REQUEST_O_RHESUS, 2, REQUEST_O_RHESUS, DISPATCH_O_RHESUS);
 
         if (RhesusFactor.POSITIVE === props.request.rhesusFactor &&
-            this.#maximum > await Promise.all([
-            this.redis.zcard(REQUEST_O),
-            this.redis.zcard(REQUEST_O_RHESUS),
-        ]).then(([a, b]) => +a + b)) {
+            this.#maximum > await this.#zcount(REQUEST_O_RHESUS, REQUEST_O)) {
             await this.redis.zinterstore(DISPATCH_O, 2, NEIGHBOURHOOD, GROUP_O);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_RHESUS, REQUEST_O);
             await this.redis.zrem(DISPATCH_O, props.userId);
@@ -81,6 +78,11 @@ export class BloodRequestDispatchUtil extends WithApplication {
 
     async #dispatchBloodGroupAB(_props: BloodRequestDispatchUtility.Props): Promise<BloodRequestDispatch> {
         throw new Error('Not yet implemented');
+    }
+
+    async #zcount(...keys: string[]): Promise<number> {
+        return await Promise.all(keys.map(key => this.redis.zcard(key)))
+            .then(cards => cards.reduce((count, card) => count + card, 0));
     }
 
     #dispatchesCollector(requestId: string, dispatchId: string,
