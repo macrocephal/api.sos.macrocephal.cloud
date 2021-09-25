@@ -82,5 +82,37 @@ export abstract class BaseBloodRequestDispatchStrategy extends WithApplication i
         } as const;
     }
 
+    protected async zcount(...keys: string[]): Promise<number> {
+        return await Promise.all(keys.map(key => this.redis.zcard(key)))
+            .then(cards => cards.reduce((count, card) => count + card, 0));
+    }
+
+    protected async collect<K extends string[]>(...keys: K): Promise<{ [key in keyof K]: K[key] extends string ? Record<string, number> | null : never }> {
+        const raw = await Promise.all(keys.map(key => this.redis.zrange(key, 0, -1, 'WITHSCORES')));
+
+        return raw.map(userIdDistancePairs => 0 === userIdDistancePairs.length
+            ? null
+            : userIdDistancePairs.reduce((stack, either, index, eithers) => {
+                if (1 === index % 2) return stack;
+                return {
+                    ...stack,
+                    [either]: +eithers[index + 1]!,
+                };
+            }, {} as Record<string, number>)) as any;
+    }
+
+    protected aggregate(requestId: string, dispatchId: string,
+        ...rawDispatches: (readonly [BloodGroup, RhesusFactor | null, Record<string, number>])[]): BloodRequestDispatch {
+        const dispatch = rawDispatches.reduce((dispatch, [group, rhesus, matches]) => {
+            if (0 < Object.keys(matches).length) {
+                if (!dispatch.outcome) dispatch.outcome ?? {};
+                if (!dispatch.outcome![group]) dispatch.outcome![group] = {};
+                if (!dispatch.outcome![group]![rhesus ?? '*']) dispatch.outcome![group]![rhesus ?? '*'] = matches;
+            }
+            return dispatch;
+        }, { requestId, id: dispatchId, createdAt: Date.now() } as BloodRequestDispatch);
+
+        return dispatch;
+    }
     abstract dispatch(pros: [request: BloodRequest, lontitude: number, latitude: number], dispatchId?: string): Promise<BloodRequestDispatch>;
 }
