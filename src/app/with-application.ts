@@ -17,8 +17,15 @@ export class WithApplication extends Container.WithContainer {
                 coordinates: (): string => 'donors:blood:coordinates',
                 group: (bloodGroup: BloodGroup): string => `donors:blood:group:${bloodGroup}`,
                 rhesus: (rhesusFactor: RhesusFactor): string => `donors:blood:rhesus:${rhesusFactor}`,
+                request: (requestId: string, bloodGroup: BloodGroup, rhesusFactor?: RhesusFactor): string =>
+                    `tmp:request-matches:blood:${requestId}:${bloodGroup}${rhesusFactor ? `:${rhesusFactor}` : ''}`,
+                dispatch: (dispatchId: string, bloodGroup: BloodGroup, rhesusFactor?: RhesusFactor): string =>
+                    `tmp:dispatch-matches:blood:${dispatchId}:${bloodGroup}${rhesusFactor ? `:${rhesusFactor}` : ''}`,
             },
-        }
+        },
+        of: {
+            neighbourhood: (dispatchId: string): string => `tmp:neigbourhood:${dispatchId}`,
+        },
     } as const;
 
     protected readonly firebase!: app.App;
