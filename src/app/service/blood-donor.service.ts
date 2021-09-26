@@ -10,13 +10,14 @@ export class BloodDonorService extends WithApplication {
 
     constructor(container: Container) {
         super(container);
-        (async () => {
+        this.init = (async (init) => {
+            await init;
             this.#donors = this.firebase.firestore().collection('donors:blood')
                 .withConverter<BloodDonor>({
                     fromFirestore: snapshot => snapshot.data() as BloodDonor,
                     toFirestore: model => model,
                 });
-        })();
+        })(this.init);
     }
 
     async search(userId: string): Promise<BloodDonor> {

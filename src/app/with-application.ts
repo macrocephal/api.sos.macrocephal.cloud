@@ -31,9 +31,11 @@ export class WithApplication extends Container.WithContainer {
     protected readonly logger!: Logger;
     protected readonly redis!: Redis;
 
+    protected init: Promise<any>;
+
     protected constructor(container: Container) {
         super(container);
-        (async () => {
+        this.init = (async () => {
             // @ts-ignore Cannot assign to 'XXX' because it is a read-only property.
             [this.logger, this.redis, this.firebase] = await container
                 .inject(Logger, REDIS_TOKEN, FIREBASE_APP_TOKEN);

@@ -22,7 +22,8 @@ export class BloodRequestService extends WithApplication {
 
     constructor(container: Container) {
         super(container);
-        (async () => {
+        this.init = (async (init) => {
+            await init;
             this.#bloodRequestDispatches = this.firebase.firestore().collection('dispatches:blood')
                 .withConverter<BloodRequestDispatch>({
                     fromFirestore: snapshot => snapshot.data() as BloodRequestDispatch,
@@ -33,7 +34,7 @@ export class BloodRequestService extends WithApplication {
                     fromFirestore: snapshot => snapshot.data() as BloodRequest,
                     toFirestore: model => model,
                 });
-        })();
+        })(this.init);
     }
 
     async search(userId: string, requestId: string): Promise<BloodRequest> {
