@@ -64,6 +64,5 @@ export class ANegativeBloodRequestDispatch extends BaseBloodRequestDispatchStrat
         await this.redis.del(DISPATCH_A_NEGATIVE, DISPATCH_O_NEGATIVE, DISPATCH_A, NEIGHBOURHOOD);
 
         return dispatch;
-        throw new Error("Method not implemented.");
     }
 }
