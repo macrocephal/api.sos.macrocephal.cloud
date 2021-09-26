@@ -6,7 +6,7 @@ import { BloodDonor } from './../model/blood-donor';
 import { WithApplication } from './../with-application';
 
 export class BloodDonorService extends WithApplication {
-    #donors!: FirebaseFirestore.CollectionReference<BloodDonor>;
+    #donors: FirebaseFirestore.CollectionReference<BloodDonor> = void 0 as any;
 
     constructor(container: Container) {
         super(container);

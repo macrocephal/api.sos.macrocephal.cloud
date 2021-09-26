@@ -8,8 +8,8 @@ import { WithApplication } from './../with-application';
 import { BaseBloodRequestDispatchStrategy } from './blood-request-dispatch/base-blood-request-dispatch.strategy';
 
 export class BloodRequestService extends WithApplication {
-    #bloodRequestDispatches!: FirebaseFirestore.CollectionReference<BloodRequestDispatch>;
-    #bloodRequests!: FirebaseFirestore.CollectionReference<BloodRequest>;
+    #bloodRequestDispatches: FirebaseFirestore.CollectionReference<BloodRequestDispatch> = void 0 as any;
+    #bloodRequests: FirebaseFirestore.CollectionReference<BloodRequest> = void 0 as any;
 
     constructor(container: Container) {
         super(container);
