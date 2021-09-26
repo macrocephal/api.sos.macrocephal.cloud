@@ -23,4 +23,4 @@ import { SERVER_TOKEN } from './conf/create-server';
         redis?.disconnect(false);
         (logger ?? console).error(error);
     }
-})();
+})().catch(console.error);
