@@ -10,8 +10,7 @@ import { Logger } from './service/logger';
 export class WithApplication extends Container.WithContainer {
     static readonly ERROR_NOT_FOUND = 'ERROR_NOT_FOUND';
     static readonly ERROR_CONFLICT = 'ERROR_CONFLICT';
-
-    #key = {
+    static key = {
         donors: {
             blood: {
                 coordinates: (): string => 'donors:blood:coordinates',
@@ -42,6 +41,6 @@ export class WithApplication extends Container.WithContainer {
     }
 
     get key() {
-        return this.#key;
+        return WithApplication.key;
     }
 }

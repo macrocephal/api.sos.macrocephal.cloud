@@ -91,7 +91,23 @@ export class BloodRequestService extends WithApplication {
         const request = await this.search(userId, requestId);
 
         if (request.active) {
-            await this.#bloodRequests.doc(request.id).update({ active: false });
+            await Promise.all([
+                this.#bloodRequests.doc(request.id).update({ active: false }),
+                this.redis.del(
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.A),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.A, RhesusFactor.NEGATIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.A, RhesusFactor.POSITIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.B),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.B, RhesusFactor.NEGATIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.B, RhesusFactor.POSITIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.O),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.O, RhesusFactor.NEGATIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.O, RhesusFactor.POSITIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.AB),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.AB, RhesusFactor.NEGATIVE),
+                    BaseBloodRequestDispatchStrategy.key.donors.blood.request(request.id, BloodGroup.AB, RhesusFactor.POSITIVE),
+                ),
+            ]);
         }
 
         this.logger.debug(`BloodRequestService.disable >>> [userId=${userId}] [requestId=${requestId}]`);
