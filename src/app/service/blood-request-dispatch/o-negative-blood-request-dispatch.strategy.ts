@@ -25,6 +25,7 @@ export class ONegativeBloodRequestDispatch extends BaseBloodRequestDispatchStrat
         await this.redis.send_command('GEORADIUS', COORDINATES, longitude, latitude, ...this.radius, 'ASC', 'STOREDIST', NEIGHBOURHOOD);
         await this.redis.zinterstore(DISPATCH_O_NEGATIVE, 3, NEIGHBOURHOOD, GROUP_O, RHESUS_NEGATIVE);
         await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O_NEGATIVE, DISPATCH_O_NEGATIVE, REQUEST_O_NEGATIVE);
+        await this.redis.zremrangebyrank(DISPATCH_O_NEGATIVE, this.maximum, -1);
         await this.redis.zrem(DISPATCH_O_NEGATIVE, request.userId);
         await this.redis.zunionstore(REQUEST_O_NEGATIVE, 2, REQUEST_O_NEGATIVE, DISPATCH_O_NEGATIVE);
         await this.redis.zremrangebyrank(REQUEST_O_NEGATIVE, this.maximum, -1);

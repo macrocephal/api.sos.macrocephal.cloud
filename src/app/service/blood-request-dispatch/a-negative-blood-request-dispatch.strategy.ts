@@ -31,6 +31,7 @@ export class ANegativeBloodRequestDispatch extends BaseBloodRequestDispatchStrat
         await this.redis.zinterstore(DISPATCH_A_NEGATIVE, 3, NEIGHBOURHOOD, GROUP_A, RHESUS_NEGATIVE);
         await withRedis(this.redis).ZDIFFSTORE(DISPATCH_A_NEGATIVE, DISPATCH_A_NEGATIVE, REQUEST_A_NEGATIVE);
         await this.redis.zrem(DISPATCH_A_NEGATIVE, request.userId);
+        await this.redis.zremrangebyrank(DISPATCH_A_NEGATIVE, this.maximum, -1);
         await this.redis.zunionstore(REQUEST_A_NEGATIVE, 2, REQUEST_A_NEGATIVE, DISPATCH_A_NEGATIVE);
         // TODO: un-notify matches ranking this.maximum+ IFF they haven't responded to the dispatch
         //       and add up the number of those who did to the maximum before capping
@@ -40,6 +41,7 @@ export class ANegativeBloodRequestDispatch extends BaseBloodRequestDispatchStrat
             await this.redis.zinterstore(DISPATCH_O_NEGATIVE, 3, NEIGHBOURHOOD, GROUP_O, RHESUS_NEGATIVE);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O_NEGATIVE, DISPATCH_O_NEGATIVE, REQUEST_O_NEGATIVE);
             await this.redis.zrem(DISPATCH_O_NEGATIVE, request.userId);
+            await this.redis.zremrangebyrank(DISPATCH_O_NEGATIVE, this.maximum, -1);
             await this.redis.zunionstore(REQUEST_O_NEGATIVE, 2, REQUEST_O_NEGATIVE, DISPATCH_O_NEGATIVE);
             await this.redis.zremrangebyrank(REQUEST_O_NEGATIVE, this.maximum, -1);
         }
@@ -47,6 +49,7 @@ export class ANegativeBloodRequestDispatch extends BaseBloodRequestDispatchStrat
         if (this.maximum > await this.zcount(REQUEST_A_NEGATIVE, REQUEST_O_NEGATIVE)) {
             await this.redis.zinterstore(DISPATCH_A, 3, NEIGHBOURHOOD, GROUP_O);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_A, DISPATCH_A, REQUEST_A_NEGATIVE, REQUEST_O_NEGATIVE, REQUEST_A);
+            await this.redis.zremrangebyrank(DISPATCH_A, this.maximum, -1);
             await this.redis.zrem(DISPATCH_A, request.userId);
             await this.redis.zunionstore(REQUEST_A, 2, REQUEST_A, DISPATCH_A);
             // TODO: un-notify matches ranking this.maximum+ IFF they haven't responded to the dispatch

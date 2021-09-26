@@ -31,6 +31,7 @@ export class OPositiveBloodRequestDispatch extends BaseBloodRequestDispatchStrat
         await this.redis.send_command('GEORADIUS', COORDINATES, longitude, latitude, ...this.radius, 'ASC', 'STOREDIST', NEIGHBOURHOOD);
         await this.redis.zinterstore(DISPATCH_O_POSITIVE, 3, NEIGHBOURHOOD, GROUP_O, RHESUS_POSITIVE);
         await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O_POSITIVE, DISPATCH_O_POSITIVE, REQUEST_O_POSITIVE);
+        await this.redis.zremrangebyrank(DISPATCH_O_POSITIVE, this.maximum, -1);
         await this.redis.zrem(DISPATCH_O_POSITIVE, request.userId);
         await this.redis.zunionstore(REQUEST_O_POSITIVE, 2, REQUEST_O_POSITIVE, DISPATCH_O_POSITIVE);
         // TODO: un-notify matches ranking this.maximum+ IFF they haven't responded to the dispatch
@@ -41,6 +42,7 @@ export class OPositiveBloodRequestDispatch extends BaseBloodRequestDispatchStrat
             await this.redis.zinterstore(DISPATCH_O_NEGATIVE, 3, NEIGHBOURHOOD, GROUP_O, RHESUS_NEGATIVE);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O_NEGATIVE, DISPATCH_O_NEGATIVE, REQUEST_O_NEGATIVE);
             await this.redis.zrem(DISPATCH_O_NEGATIVE, request.userId);
+            await this.redis.zremrangebyrank(DISPATCH_O_NEGATIVE, this.maximum, -1);
             await this.redis.zunionstore(REQUEST_O_NEGATIVE, 2, REQUEST_O_NEGATIVE, DISPATCH_O_NEGATIVE);
             // TODO: un-notify matches ranking this.maximum+ IFF they haven't responded to the dispatch
             //       and add up the number of those who did to the maximum before capping
@@ -51,6 +53,7 @@ export class OPositiveBloodRequestDispatch extends BaseBloodRequestDispatchStrat
             await this.redis.zinterstore(DISPATCH_O, 3, NEIGHBOURHOOD, GROUP_O);
             await withRedis(this.redis).ZDIFFSTORE(DISPATCH_O, DISPATCH_O, REQUEST_O_POSITIVE, REQUEST_O_NEGATIVE, REQUEST_O);
             await this.redis.zrem(DISPATCH_O, request.userId);
+            await this.redis.zremrangebyrank(DISPATCH_O, this.maximum, -1);
             await this.redis.zunionstore(REQUEST_O, 2, REQUEST_O, DISPATCH_O);
             // TODO: un-notify matches ranking this.maximum+ IFF they haven't responded to the dispatch
             //       and add up the number of those who did to the maximum before capping
