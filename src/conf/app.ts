@@ -15,12 +15,12 @@ export const app = async (container = new Container()): Promise<Container> => {
     container.visit(createEnv, createServer, createFirebaseApp);
     const [appName] = await container.inject(APPLICATION_NAME);
     container.register(Logger, new Logger(() => appName));
-    await createServerPlugin(container);
     container.visit(createRedis, createMigrator)
-        .visit(bloodDonors, bloodRequests)
         .register(BloodRequestService)
         .register(BloodDonorService)
         ;
+    await createServerPlugin(container);
+    await container.visit(bloodDonors, bloodRequests)
 
     return container;
 }
