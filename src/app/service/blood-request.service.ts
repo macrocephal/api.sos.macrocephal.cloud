@@ -5,12 +5,11 @@ import { Container } from './../../container';
 import { BloodRequest } from './../model/blood-request';
 import { BloodRequestDispatch } from './../model/blood-request-dispatch';
 import { WithApplication } from './../with-application';
-import { BloodRequestDispatchUtil } from './blood-request-dispatch.util';
+import { BaseBloodRequestDispatchStrategy } from './blood-request-dispatch/base-blood-request-dispatch.strategy';
 
 export class BloodRequestService extends WithApplication {
     #bloodRequestDispatches!: FirebaseFirestore.CollectionReference<BloodRequestDispatch>;
     #bloodRequests!: FirebaseFirestore.CollectionReference<BloodRequest>;
-    #bloodRequestDispatchUtil!: BloodRequestDispatchUtil;
 
     constructor(container: Container) {
         super(container);
@@ -25,7 +24,6 @@ export class BloodRequestService extends WithApplication {
                     fromFirestore: snapshot => snapshot.data() as BloodRequest,
                     toFirestore: model => model,
                 });
-            [this.#bloodRequestDispatchUtil] = await container.inject(BloodRequestDispatchUtil);
         })();
     }
 
@@ -78,12 +76,8 @@ export class BloodRequestService extends WithApplication {
         }
 
         // TODO: pull all dispatches for this request, merge them and hydrate Redis
-        const dispatch = await this.#bloodRequestDispatchUtil.dispatch({
-            longitude: payload.longitude,
-            latitude: payload.latitude,
-            request,
-            userId,
-        });
+        const strategy = await BaseBloodRequestDispatchStrategy.resolve(request, this.container);
+        const dispatch = await strategy.dispatch([request, payload.longitude, payload.latitude]);
 
         await this.#bloodRequestDispatches.doc(dispatch.id).set(dispatch, { merge: false });
         // TODO: send notifications to matches for this last dispatch

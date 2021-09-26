@@ -1,5 +1,4 @@
 import { bloodRequests } from '../app/api/requests/blood';
-import { BloodRequestDispatchUtil } from '../app/service/blood-request-dispatch.util';
 import { bloodDonors } from './../app/api/donors/blood';
 import { BloodDonorService } from './../app/service/blood-donor.service';
 import { BloodRequestService } from './../app/service/blood-request.service';
@@ -19,7 +18,6 @@ export const app = async (container = new Container()): Promise<Container> => {
     await createServerPlugin(container);
     container.visit(createRedis, createMigrator)
         .visit(bloodDonors, bloodRequests)
-        .register(BloodRequestDispatchUtil)
         .register(BloodRequestService)
         .register(BloodDonorService)
         ;
