@@ -18,24 +18,38 @@ export abstract class BaseBloodRequestDispatchStrategy extends WithApplication i
     protected readonly radius = [50_000, 'm'] as const;
     protected readonly maximum = 50 as const;
 
-    static resolve(request: BloodRequest, container: Container): BaseBloodRequestDispatchStrategy {
+    static async #resolve(container: Container, constructor: { new(container: Container): BaseBloodRequestDispatchStrategy }): Promise<BaseBloodRequestDispatchStrategy> {
+
+        try {
+            const [strategy] = await container.inject(constructor);
+            return strategy;
+        } catch (error) {
+            const strategy = Reflect.construct(constructor, [container]);
+
+            container.register(constructor, strategy);
+            return strategy;
+        }
+
+    }
+
+    static async resolve(request: BloodRequest, container: Container): Promise<BaseBloodRequestDispatchStrategy> {
         switch (request.bloodGroup) {
             case BloodGroup.A:
                 return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? new ANegativeBloodRequestDispatch(container)
-                    : new APositiveBloodRequestDispatch(container);
+                    ? this.#resolve(container, ANegativeBloodRequestDispatch)
+                    : this.#resolve(container, APositiveBloodRequestDispatch);
             case BloodGroup.B:
                 return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? new BNegativeBloodRequestDispatch(container)
-                    : new BPositiveBloodRequestDispatch(container);
+                    ? this.#resolve(container, BNegativeBloodRequestDispatch)
+                    : this.#resolve(container, BPositiveBloodRequestDispatch);
             case BloodGroup.O:
                 return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? new ONegativeBloodRequestDispatch(container)
-                    : new OPositiveBloodRequestDispatch(container);
+                    ? this.#resolve(container, ONegativeBloodRequestDispatch)
+                    : this.#resolve(container, OPositiveBloodRequestDispatch);
             case BloodGroup.AB:
                 return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? new ABNegativeBloodRequestDispatch(container)
-                    : new ABPositiveBloodRequestDispatch(container);
+                    ? this.#resolve(container, ABNegativeBloodRequestDispatch)
+                    : this.#resolve(container, ABPositiveBloodRequestDispatch);
 
             default:
                 throw new Error(`Unsupported opperation yet [bloodGroup=${request.bloodGroup}] [rhesusFactor=${request.rhesusFactor}]`);
