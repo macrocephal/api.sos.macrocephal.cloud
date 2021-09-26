@@ -4,22 +4,13 @@ import { RhesusFactor } from '../../model/rhesus-factor';
 import { Container } from './../../../container';
 import { BloodRequestDispatch } from './../../model/blood-request-dispatch';
 import { WithApplication } from './../../with-application';
-import { ANegativeBloodRequestDispatch } from './a-negative-blood-request-dispatch.strategy';
-import { APositiveBloodRequestDispatch } from './a-positive-blood-request-dispatch.strategy';
-import { ABNegativeBloodRequestDispatch } from './ab-negative-blood-request-dispatch.strategy';
-import { ABPositiveBloodRequestDispatch } from './ab-positive-blood-request-dispatch.strategy';
-import { BNegativeBloodRequestDispatch } from './b-negative-blood-request-dispatch.strategy';
-import { BPositiveBloodRequestDispatch } from './b-positive-blood-request-dispatch.strategy';
 import { BloodRequestDispatchStrategy } from './blood-request-dispatch.strategy';
-import { ONegativeBloodRequestDispatch } from './o-negative-blood-request-dispatch.strategy';
-import { OPositiveBloodRequestDispatch } from './o-positive-blood-request-dispatch.strategy';
 
 export abstract class BaseBloodRequestDispatchStrategy extends WithApplication implements BloodRequestDispatchStrategy {
     protected readonly radius = [50_000, 'm'] as const;
     protected readonly maximum = 50 as const;
 
-    static async #resolve(container: Container, constructor: { new(container: Container): BaseBloodRequestDispatchStrategy }): Promise<BaseBloodRequestDispatchStrategy> {
-
+    static async resolve(container: Container, constructor: { new(container: Container): BaseBloodRequestDispatchStrategy }): Promise<BaseBloodRequestDispatchStrategy> {
         try {
             const [strategy] = await container.inject(constructor);
             return strategy;
@@ -30,30 +21,6 @@ export abstract class BaseBloodRequestDispatchStrategy extends WithApplication i
             return strategy;
         }
 
-    }
-
-    static async resolve(request: BloodRequest, container: Container): Promise<BaseBloodRequestDispatchStrategy> {
-        switch (request.bloodGroup) {
-            case BloodGroup.A:
-                return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? this.#resolve(container, ANegativeBloodRequestDispatch)
-                    : this.#resolve(container, APositiveBloodRequestDispatch);
-            case BloodGroup.B:
-                return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? this.#resolve(container, BNegativeBloodRequestDispatch)
-                    : this.#resolve(container, BPositiveBloodRequestDispatch);
-            case BloodGroup.O:
-                return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? this.#resolve(container, ONegativeBloodRequestDispatch)
-                    : this.#resolve(container, OPositiveBloodRequestDispatch);
-            case BloodGroup.AB:
-                return RhesusFactor.NEGATIVE === request.rhesusFactor
-                    ? this.#resolve(container, ABNegativeBloodRequestDispatch)
-                    : this.#resolve(container, ABPositiveBloodRequestDispatch);
-
-            default:
-                throw new Error(`Unsupported opperation yet [bloodGroup=${request.bloodGroup}] [rhesusFactor=${request.rhesusFactor}]`);
-        }
     }
 
     constructor(container: Container) {

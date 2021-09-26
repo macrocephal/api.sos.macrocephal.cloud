@@ -5,7 +5,16 @@ import { Container } from './../../container';
 import { BloodRequest } from './../model/blood-request';
 import { BloodRequestDispatch } from './../model/blood-request-dispatch';
 import { WithApplication } from './../with-application';
+import { ANegativeBloodRequestDispatch } from './blood-request-dispatch/a-negative-blood-request-dispatch.strategy';
+import { APositiveBloodRequestDispatch } from './blood-request-dispatch/a-positive-blood-request-dispatch.strategy';
+import { ABNegativeBloodRequestDispatch } from './blood-request-dispatch/ab-negative-blood-request-dispatch.strategy';
+import { ABPositiveBloodRequestDispatch } from './blood-request-dispatch/ab-positive-blood-request-dispatch.strategy';
+import { BNegativeBloodRequestDispatch } from './blood-request-dispatch/b-negative-blood-request-dispatch.strategy';
+import { BPositiveBloodRequestDispatch } from './blood-request-dispatch/b-positive-blood-request-dispatch.strategy';
 import { BaseBloodRequestDispatchStrategy } from './blood-request-dispatch/base-blood-request-dispatch.strategy';
+import { BloodRequestDispatchStrategy } from './blood-request-dispatch/blood-request-dispatch.strategy';
+import { ONegativeBloodRequestDispatch } from './blood-request-dispatch/o-negative-blood-request-dispatch.strategy';
+import { OPositiveBloodRequestDispatch } from './blood-request-dispatch/o-positive-blood-request-dispatch.strategy';
 
 export class BloodRequestService extends WithApplication {
     #bloodRequestDispatches: FirebaseFirestore.CollectionReference<BloodRequestDispatch> = void 0 as any;
@@ -76,7 +85,9 @@ export class BloodRequestService extends WithApplication {
         }
 
         // TODO: pull all dispatches for this request, merge them and hydrate Redis
-        const strategy = await BaseBloodRequestDispatchStrategy.resolve(request, this.container);
+        const strategy = await this.#resolveStrategy(request);
+
+        // const strategy = await BaseBloodRequestDispatchStrategy.resolve(request, this.container);
         const dispatch = await strategy.dispatch([request, payload.longitude, payload.latitude]);
 
         await this.#bloodRequestDispatches.doc(dispatch.id).set(dispatch, { merge: false });
@@ -84,6 +95,31 @@ export class BloodRequestService extends WithApplication {
 
         this.logger.debug('BloodRequestService.dispatch >>> ', dispatch);
         return dispatch;
+    }
+
+    async #resolveStrategy(request: BloodRequest): Promise<BloodRequestDispatchStrategy> {
+        const resolve = BaseBloodRequestDispatchStrategy.resolve.bind(BaseBloodRequestDispatchStrategy);
+
+        switch (request.bloodGroup) {
+            case BloodGroup.A:
+                return RhesusFactor.NEGATIVE === request.rhesusFactor
+                    ? await resolve(this.container, ANegativeBloodRequestDispatch)
+                    : await resolve(this.container, APositiveBloodRequestDispatch);
+            case BloodGroup.B:
+                return RhesusFactor.NEGATIVE === request.rhesusFactor
+                    ? await resolve(this.container, BNegativeBloodRequestDispatch)
+                    : await resolve(this.container, BPositiveBloodRequestDispatch);
+            case BloodGroup.O:
+                return RhesusFactor.NEGATIVE === request.rhesusFactor
+                    ? await resolve(this.container, ONegativeBloodRequestDispatch)
+                    : await resolve(this.container, OPositiveBloodRequestDispatch);
+            case BloodGroup.AB:
+                return RhesusFactor.NEGATIVE === request.rhesusFactor
+                    ? await resolve(this.container, ABNegativeBloodRequestDispatch)
+                    : await resolve(this.container, ABPositiveBloodRequestDispatch);
+            default:
+                throw new Error(`Unsupported opperation yet [bloodGroup=${request.bloodGroup}] [rhesusFactor=${request.rhesusFactor}]`);
+        };
     }
 
     async disable(userId: string, requestId: string): Promise<void> {
