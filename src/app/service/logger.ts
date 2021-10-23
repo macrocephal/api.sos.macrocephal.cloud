@@ -4,12 +4,18 @@ export class Logger {
     #namespace = '<[not-resolved]>';
 
     constructor(namespace: string);
-    constructor(namespaceResolver: (() => string) | (() => Promise<string>));
-    constructor(namespaceOrNamespaceResolver: string | (() => string) | (() => Promise<string>)) {
-        if ('string' === typeof namespaceOrNamespaceResolver) {
-            this.#namespace = namespaceOrNamespaceResolver;
+    constructor(namespaceResolver: (() => string | Promise<string>));
+    constructor(namespaceOrResolver: string | (() => string | Promise<string>)) {
+        if ('string' === typeof namespaceOrResolver) {
+            this.#namespace = namespaceOrResolver;
         } else {
-            Promise.resolve(namespaceOrNamespaceResolver()).then(namespace => this.#namespace = namespace);
+            (namespaceOrPromise => {
+                if ('string' == typeof namespaceOrPromise) {
+                    this.#namespace = namespaceOrPromise;
+                } else {
+                    namespaceOrPromise.then(namespace => this.#namespace = namespace);
+                }
+            })(namespaceOrResolver());
         }
     }
 
